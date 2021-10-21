@@ -11,11 +11,7 @@ def init_bot(bot_prefix):
 
 
 def run_bot(bot, config, token):
-    print (bot)
-    print (config)
-    print (token)
     bot.run(config[token])    
-    print("run")
 
 
 def load_packages(files, bot):
@@ -56,12 +52,10 @@ def main():
     init_files('./cogs', files)
 
     bot = init_bot(prefixes['894160228239679490'])
-    
 
     load_packages(files, bot)
 
     run_bot(bot, config, 'main_token')
-
 
 
 main()
