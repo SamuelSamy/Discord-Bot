@@ -562,7 +562,7 @@ class Appeal_Module(commands.Cog):
                                 
                                 cooldown = self.get_appeal_cooldown(guild, id,  int(appeals[guild]['cooldown']))
 
-                                if cooldown != 0: #and id != 225629057172111362:
+                                if cooldown != 0 and id != 225629057172111362:
                                     await author.send(f"Hello <@{id}>\nYou will be able to apply again <t:{cooldown}:R>, at <t:{cooldown}>")
                                 else:
 
