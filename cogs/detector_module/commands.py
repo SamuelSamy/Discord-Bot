@@ -47,11 +47,14 @@ class Detector_Module_Commands(commands.Cog):
 
         return False
 
-    
+
     def is_possible_scam(self, message):
-        mask = "discord.gift"
 
         links_in_message = re.findall("(?P<url>https?://[^\s]+)", message)
+
+        masks = []
+        for mask in blacklisted['masks']:
+            masks.append(masks)
 
         for link in links_in_message:
             link_parts = link.split('/')
@@ -59,10 +62,12 @@ class Detector_Module_Commands(commands.Cog):
             if len(link_parts) > 2:
                 to_verrify = link_parts[2]
                 
-                distance = self.levenshtein_distance(to_verrify, mask)
-
-                if distance > 0 and distance < 4:
-                    return True
+                for mask in masks:
+                    
+                    distance = self.levenshtein_distance(to_verrify, mask)
+                    
+                    if distance > 0 and distance < 4 and to_verrify not in masks:
+                        return True
 
         return False
 
