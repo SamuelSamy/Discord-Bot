@@ -10,7 +10,7 @@ from discord import CategoryChannel
 from cogs.__classes.settings import * 
 
 
-class LockModule(commands.Cog):
+class Lock_Module(commands.Cog):
     def __init__ (self, bot):
         self.bot = bot
     
@@ -221,4 +221,4 @@ with open('data/settings.json') as file:
 
 
 def setup(bot):
-    bot.add_cog(LockModule(bot))
+    bot.add_cog(Lock_Module(bot))

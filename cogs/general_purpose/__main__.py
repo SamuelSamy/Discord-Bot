@@ -6,7 +6,7 @@ import math
 from discord import channel
 from discord.ext import commands
 
-class MmebersModule(commands.Cog):
+class Mmebers_Module(commands.Cog):
     def __init__ (self, bot):
         self.bot = bot
 
@@ -141,4 +141,4 @@ class MmebersModule(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(MmebersModule(bot))
+    bot.add_cog(Mmebers_Module(bot))

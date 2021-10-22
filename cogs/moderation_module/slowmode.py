@@ -7,7 +7,7 @@ from discord.ext import commands
 from cogs.__classes.settings import *
 
 
-class SlowmodeModule(commands.Cog):
+class Slowmode_Module(commands.Cog):
 
     def __init__ (self, bot):
         self.bot = bot
@@ -163,4 +163,4 @@ with open('data/settings.json') as settingsFile:
     settingsFile.close()
 
 def setup(bot):
-    bot.add_cog(SlowmodeModule(bot))
+    bot.add_cog(Slowmode_Module(bot))
