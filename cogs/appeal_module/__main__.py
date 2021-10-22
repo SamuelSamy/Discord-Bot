@@ -291,12 +291,12 @@ class Appeal_Module(commands.Cog):
 
         response = "Accepted"
         _color = 0x0ee320
-        emoji = "<:greenTick:897104713982541865>"
+        emoji = "<:greenTick:901197496276111451>"
 
         if appeal_message[Appeal.response.value] == -1:
             response = "Denied"
             _color = 0xe30e27
-            emoji = "<:redTick:897104673150996533>"
+            emoji = "<:redTick:901197559912099841>"
         elif appeal_message[Appeal.response.value] == -100:
             response = "Warn"   
             _color = 0xd6c315
@@ -409,7 +409,7 @@ class Appeal_Module(commands.Cog):
         if answer == 1:
             message_for_user = f"Hello <@{user_id}>\n\nYou are unbanned from the game and have recieved a second chance\nIf you use Exploits / Hacks again your next ban will be permanent.\n\n-Anime Fighters Administration Team"
         elif answer == -1:
-            message_for_user = f"Hello <@{user_id}>\n\nYour ban appeal was reviewed by a administrator\nIt was denied and you can re-appeal your ban in 7 days\nYou are not able to appeal your ban anymore if you have been unbanned before\n\n-Anime Fighters Administration Team"
+            message_for_user = f"Hello <@{user_id}>\n\nYour ban appeal was reviewed by a administrator\nIt was denied and you can re-appeal your ban <t:{round(time.time() + appeals[guild]['cooldown'])}:R>\nYou are not able to appeal your ban anymore if you have been unbanned before\n\n-Anime Fighters Administration Team"
         else:
             message_for_user = f"Hello <@{user_id}>\n\nYou have recentlly misused our ban appeal system.\nIf you continue to do so you will be punished."
 
@@ -590,7 +590,7 @@ class Appeal_Module(commands.Cog):
 
                         if last_step == 0: # roblox profile
                             
-                            res = await author.send("<a:loading:898569895208423464> Searching profile...\n> Please wait")
+                            res = await author.send("<a:loading:901197462935580692> Searching profile...\n> Please wait")
 
                             profile = self.get_profile(message.content)
                             
