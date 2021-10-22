@@ -107,14 +107,17 @@ class Appeal_Module(commands.Cog):
 
         deny = "<:redTick:897104673150996533>"
         accept = "<:greenTick:897104713982541865>"
+        warn = "⚠️"
 
         actaul_string = ""
 
         for i in range(0, len(ids_list)):
             if answer_list[i] == 1:
                 emoji = accept
-            else:
+            elif answer_list[i] == -1:
                 emoji = deny
+            else:
+                emoji = warn
 
             actaul_string += f"{emoji} ID: {ids_list[i]} at <t:{time_list[i]}> (<t:{time_list[i]}:R>)\n"
 
@@ -183,12 +186,15 @@ class Appeal_Module(commands.Cog):
                 _name = "Response"
                 deny = "<:redTick:897104673150996533>"
                 accept = "<:greenTick:897104713982541865>"
+                warn = "⚠️"
 
                 if appeal_message[Appeal.response.value] == 1:
                     logs = f"{accept} **ID: {appeal_message[Appeal.id.value]}** at <t:{appeal_message[Appeal.response_time.value]}> (<t:{appeal_message[Appeal.response_time.value]}:R>)"
-                else:
+                elif appeal_message[Appeal.response.value] == -1:
                     logs = f"{deny} **ID: {appeal_message[Appeal.id.value]}** at <t:{appeal_message[Appeal.response_time.value]}> (<t:{appeal_message[Appeal.response_time.value]}:R>)"
-        
+                else:
+                    logs = f"{warn} **ID: {appeal_message[Appeal.id.value]}** at <t:{appeal_message[Appeal.response_time.value]}> (<t:{appeal_message[Appeal.response_time.value]}:R>)"
+
 
 
             if logs != "":
@@ -197,6 +203,7 @@ class Appeal_Module(commands.Cog):
                     value = logs,
                     inline = False
                 )
+
 
             embed.add_field(
                 name = "Sent at",
@@ -218,6 +225,10 @@ class Appeal_Module(commands.Cog):
         for appeal in reversed(appeals[guild]['handled_appeals']):
             if appeal[Appeal.discord_id.value] == discord_id:
                 _time = round(time.time()) - appeal[Appeal.response_time.value]
+                
+                if appeal[Appeal.response.value] == -100:
+                    cooldown *= 2
+                
                 if _time < cooldown:
                     return appeal[Appeal.response_time.value] + cooldown
 
@@ -279,18 +290,23 @@ class Appeal_Module(commands.Cog):
         roblox_id = appeal_message[Appeal.roblox_id.value]
 
         response = "Accepted"
-        _color = 0x00FF00
+        _color = 0x0ee320
         emoji = "<:greenTick:897104713982541865>"
 
         if appeal_message[Appeal.response.value] == -1:
             response = "Denied"
-            _color = 0xFF0000
+            _color = 0xe30e27
             emoji = "<:redTick:897104673150996533>"
+        elif appeal_message[Appeal.response.value] == -100:
+            response = "Warn"   
+            _color = 0xd6c315
+            emoji = "⚠️"
+
 
         embed = discord.Embed(
             color = _color
         )
-
+       
         embed.set_author(
             name = f"{user}",
             icon_url = user.avatar_url
@@ -392,9 +408,11 @@ class Appeal_Module(commands.Cog):
 
         if answer == 1:
             message_for_user = f"Hello <@{user_id}>\n\nYou are unbanned from the game and have recieved a second chance\nIf you use Exploits / Hacks again your next ban will be permanent.\n\n-Anime Fighters Administration Team"
-        else:
+        elif answer == -1:
             message_for_user = f"Hello <@{user_id}>\n\nYour ban appeal was reviewed by a administrator\nIt was denied and you can re-appeal your ban in 7 days\nYou are not able to appeal your ban anymore if you have been unbanned before\n\n-Anime Fighters Administration Team"
-    
+        else:
+            message_for_user = f"Hello <@{user_id}>\n\nYou have recentlly misused our ban appeal system.\nIf you continue to do so you will be punished."
+
 
         await user.send(message_for_user)
 
@@ -419,6 +437,7 @@ class Appeal_Module(commands.Cog):
 
 
     async def delete_appeal(self, guild, id):
+
         appeal_message = self.get_appeal_sent_by_id(guild, id)
 
         if appeal_message is None:
@@ -469,12 +488,6 @@ class Appeal_Module(commands.Cog):
     @commands.Cog.listener("on_ready")
     async def appeal_button_listener(self):
         
-        guilds = {
-            875089864998133780: "894160228239679490", # MAIN
-            900101389416546314: "876988765955039273", # BURA
-            867480262777765918: "852143372353142785" # AF
-        }
-        
         while True:
             
 
@@ -483,7 +496,8 @@ class Appeal_Module(commands.Cog):
             )
 
             id = interaction.custom_id
-            guild = guilds[self.bot.user.id]
+            guild = str(interaction.guild.id)
+
 
             if id == "appeal_button":
                 await self.create_appeal(interaction)
@@ -495,6 +509,9 @@ class Appeal_Module(commands.Cog):
                 await interaction.message.delete()
             elif id.startswith("delete_appeal_btn-"):
                 await self.delete_appeal(guild, self.get_appeal_id(id))
+                await interaction.message.delete()
+            elif id.startswith("warn_appeal_btn-"):
+                await self.answer_appeal(guild, self.get_appeal_id(id), -100, interaction.author.id)
                 await interaction.message.delete()
 
 
@@ -545,7 +562,7 @@ class Appeal_Module(commands.Cog):
                                 
                                 cooldown = self.get_appeal_cooldown(guild, id,  int(appeals[guild]['cooldown']))
 
-                                if cooldown != 0 and id != 225629057172111362:
+                                if cooldown != 0: #and id != 225629057172111362:
                                     await author.send(f"Hello <@{id}>\nYou will be able to apply again <t:{cooldown}:R>, at <t:{cooldown}>")
                                 else:
 
@@ -619,23 +636,30 @@ class Appeal_Module(commands.Cog):
 
                                 self.save_json()
 
-                                comps = [[
-                                    Button (
-                                        style = ButtonStyle.green,
-                                        label = "Accept",
-                                        custom_id = f"accept_appeal_btn-{appeal_message[Appeal.id.value]}"
-                                    ),
-                                    Button (
-                                        style = ButtonStyle.red,
-                                        label = "Deny",
-                                        custom_id = f"deny_appeal_btn-{appeal_message[Appeal.id.value]}"
-                                    ),
-                                    Button (
-                                        style = ButtonStyle.red,
-                                        label = "Delete",
-                                        custom_id = f"delete_appeal_btn-{appeal_message[Appeal.id.value]}"
-                                    ),
-                                ]]
+                                comps = [
+                                    [
+                                        Button (
+                                            style = ButtonStyle.green,
+                                            label = "Accept",
+                                            custom_id = f"accept_appeal_btn-{appeal_message[Appeal.id.value]}"
+                                        ),
+                                        Button (
+                                            style = ButtonStyle.red,
+                                            label = "Deny",
+                                            custom_id = f"deny_appeal_btn-{appeal_message[Appeal.id.value]}"
+                                        ),
+                                        Button (
+                                            style = ButtonStyle.blue,
+                                            label = "Warn",
+                                            custom_id = f"warn_appeal_btn-{appeal_message[Appeal.id.value]}"
+                                        ),
+                                        Button (
+                                            style = ButtonStyle.gray,
+                                            label = "Delete",
+                                            custom_id = f"delete_appeal_btn-{appeal_message[Appeal.id.value]}"
+                                        ),
+                                    ]
+                                ]
 
                                 try:
 
@@ -708,7 +732,7 @@ class Appeal_Module(commands.Cog):
         if type(id) == int:
             
             apps = appeals[str(ctx.channel.guild.id)]['handled_appeals']
-
+            warns = appeals[str(ctx.channel.guild.id)]['warns']
             found = False
 
             for appeal in apps:
@@ -716,8 +740,14 @@ class Appeal_Module(commands.Cog):
                     await ctx.channel.send(embed = self.generate_appeal(appeal, False))
                     found = True
 
+            for appeal in warns:
+                if appeal[Appeal.id.value] == id:
+                    await ctx.channel.send(embed = self.generate_appeal(appeal, False))
+                    found = True
+
             if not found:
                 await ctx.channel.send("Unable to find appeal with specified id")
+
 
     @commands.command()
     @commands.has_permissions(administrator = True)
