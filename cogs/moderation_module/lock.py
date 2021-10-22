@@ -7,6 +7,8 @@ from discord.ext import commands
 from discord.utils import get
 from discord import CategoryChannel
 
+from cogs.__classes.settings import * 
+
 
 class LockModule(commands.Cog):
     def __init__ (self, bot):
@@ -19,7 +21,7 @@ class LockModule(commands.Cog):
 
         channel = channel or ctx.channel
         guild_id = str(ctx.channel.guild.id)
-        role = get(ctx.guild.roles, id = settings[guild_id]['lockRoleId'])
+        role = get(ctx.guild.roles, id = settings[guild_id][Settings.lock_role.value])
         
         permission_value = 1
         permissions = channel.overwrites_for(role)
@@ -51,7 +53,7 @@ class LockModule(commands.Cog):
         channel = channel or ctx.channel
         guild_id = str(ctx.channel.guild.id)
 
-        role = get(ctx.guild.roles, id = settings[guild_id]['lockRoleId'])
+        role = get(ctx.guild.roles, id = settings[guild_id][Settings.lock_role.value])
 
         permission_value = 1
         permissions = channel.overwrites_for(role)
@@ -82,9 +84,9 @@ class LockModule(commands.Cog):
 
 
         guild_id = str(ctx.channel.guild.id)
-        role = get(ctx.guild.roles, id = settings[guild_id]['lockRoleId'])
+        role = get(ctx.guild.roles, id = settings[guild_id][Settings.lock_role.value])
 
-        channels = settings[guild_id]['lockdownChannels']
+        channels = settings[guild_id][Settings.lockdown_channels.value]
 
         Type = Type.lower().strip()
         send_message = None
@@ -145,19 +147,19 @@ class LockModule(commands.Cog):
         message = ""
     
         if Type == "add":
-            if channel.id not in settings[guild_id]['lockdownChannels']:
-                settings[guild_id]['lockdownChannels'].append(channel.id)
+            if channel.id not in settings[guild_id][Settings.lockdown_channels.value]:
+                settings[guild_id][Settings.lockdown_channels.value].append(channel.id)
                 message = "<#{}> added to the lockdown list!".format(channel.id)
             else:
                 message = "This channel is already added! Use `{}lockdownchannel remove` to remove this channel".format(commands.Cog.command_prefix)
         
         elif Type == "remove":
-            dictLen = len(settings[guild_id]['lockdownChannels'])
+            dictLen = len(settings[guild_id][Settings.lockdown_channels.value])
             found = False
 
             for i in range(0, dictLen):
-                if settings[guild_id]['lockdownChannels'][i] == channel.id:
-                    del settings[guild_id]['lockdownChannels'][i]
+                if settings[guild_id][Settings.lockdown_channels.value][i] == channel.id:
+                    del settings[guild_id][Settings.lockdown_channels.value][i]
                     message = "<#{}> removed!".format(channel.id)
                     found = True
                     break
@@ -176,7 +178,7 @@ class LockModule(commands.Cog):
     async def getlockdownchannels(self, ctx):
         guild_id = str(ctx.channel.guild.id)
 
-        channels = settings[guild_id]['lockdownChannels']
+        channels = settings[guild_id][Settings.lockdown_channels.value]
 
         finalMessage = "**Channels:**\n"
 
@@ -212,9 +214,11 @@ async def check_permission(channel : discord.TextChannel, role, permission_value
 
     return 0
 
+
 with open('data/settings.json') as file:
     settings = json.load(file)
     file.close()
+
 
 def setup(bot):
     bot.add_cog(LockModule(bot))

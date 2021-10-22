@@ -7,17 +7,7 @@ from enum import Enum
 from discord.ext import commands
 from discord_components import *
 
-class Settings(Enum):
-    slowmode_channels    = 0 # []
-    lockdown_channels    = 1 # []
-    lock_role            = 2 # int
-    scam_logs            = 3 # int
-    mod_logs             = 4 # int
-    muted_role           = 5 # int
-    helpers              = 6 # []
-    helper_logs          = 7 # int
-    helper_role          = 8 # int
-    suggestions_channels = 9 # []
+from cogs.__classes.settings import *
 
 
 class Setup_Module(commands.Cog):
@@ -25,7 +15,7 @@ class Setup_Module(commands.Cog):
         self.bot = bot
 
     
-    def save_json(self):
+    def save_json(self, settings, appeals):
         with open("data/settings.json", "w") as f:
             json.dump(settings, f)
 
@@ -33,7 +23,7 @@ class Setup_Module(commands.Cog):
             json.dump(appeals, f)
 
 
-    def server_is_already_setted_up(self, guild):
+    def server_is_already_setted_up(self, guild, settings):
         
         for guild_setup in settings:
             if guild_setup == str(guild.id):
@@ -42,15 +32,15 @@ class Setup_Module(commands.Cog):
         return False
 
 
-    def create_settings(self, guild):
+    def create_settings(self, guild, settings):
         settings[str(guild.id)] = {}
+        
 
-
-    def create_settings_entry(self, guild, entry, value):
+    def create_settings_entry(self, guild, entry, value, settings):
         settings[str(guild.id)][entry] = value
 
 
-    def create_appeal(self, guild):
+    def create_appeal(self, guild, appeals):
         appeals[str(guild.id)] = {
             "next_id": 0,
             "appeal_channel": 0,
@@ -59,10 +49,12 @@ class Setup_Module(commands.Cog):
             "delete_time": 3600,
             "appeals": [],
             "sent_appeals": [],
-            "handled_appeals": []
+            "handled_appeals": [], 
+            "warns": []
         }
 
-    def change_appeal_entry(self, guild, entry, value):
+
+    def change_appeal_entry(self, guild, entry, value, appeals):
         appeals[str(guild.id)][entry] = value
 
 
@@ -81,19 +73,52 @@ class Setup_Module(commands.Cog):
         return channels
 
 
+    def setup_helpers(self, guild, settings):
+        
+        settings[str(guild.id)][Settings.helpers.value] = []
+        role = guild.get_role(settings[str(guild.id)][Settings.helper_role.value])
+        members = role.members
+
+        for member in members:
+            settings[str(guild.id)][Settings.helpers.value].append(member.id)
+            
+
+    def generate_dict(self, channels):
+        channels_dict = []
+
+        for channel in channels:
+            channel_dict = {
+                "id": channel,
+                "default_slowmode": 10
+            }
+
+            channels_dict.append(channel_dict)
+
+        return channels_dict
+
+
     @commands.command()
     @commands.has_permissions(administrator = True)
     async def setup(self, ctx):
+
+        with open('data/settings.json') as file:
+            settings = json.load(file)
+            file.close()
+
+
+        with open('data/appeals.json') as file:
+            appeals = json.load(file)
+            file.close()
+
+
         guild = ctx.channel.guild
 
-        # TODO setup appeals
-
-        if self.server_is_already_setted_up(guild):
+        if self.server_is_already_setted_up(guild, settings):
             await ctx.send("This server is already setted up")
         else:
 
-            self.create_settings(guild)
-            self.create_appeal(guild)
+            self.create_settings(guild, settings)
+            self.create_appeal(guild, appeals)
 
             setup_steps = [
                 "Mention the `muted` role",
@@ -138,7 +163,7 @@ class Setup_Module(commands.Cog):
                                 2: Settings.helper_role.value
                             }   
 
-                        self.create_settings_entry(guild, sub_steps[index], role_id)
+                        self.create_settings_entry(guild, sub_steps[index], role_id, settings)
                     except error:
                         print(error)
                         await ctx.send("Role not found")
@@ -150,7 +175,7 @@ class Setup_Module(commands.Cog):
                         5: Settings.slowmode_channels.value,
                         6: Settings.lockdown_channels.value,
                         7: Settings.helper_logs.value,
-                        8: Settings.suggestions_channels
+                        8: Settings.suggestions_channels.value
                     }  
 
                     channels = self.get_channels(message.content)
@@ -160,7 +185,10 @@ class Setup_Module(commands.Cog):
                         if index in [3, 4, 7]:
                             channels = channels[0]
 
-                        self.create_settings_entry(guild, sub_steps[index], channels)
+                        if index == 5:
+                            channels = self.generate_dict(channels)
+                            
+                        self.create_settings_entry(guild, sub_steps[index], channels, settings)
                     else:
                         await ctx.send("Error while processing the channels")    
                         index -= 1
@@ -171,6 +199,7 @@ class Setup_Module(commands.Cog):
                     }  
 
                     channel = message.content[2:-1]
+
                     if channel.isnumeric():
                         channel = int(channel)
                     
@@ -178,7 +207,7 @@ class Setup_Module(commands.Cog):
                             channel_object = self.bot.get_channel(channel)
 
                             if channel_object:
-                                self.change_appeal_entry(guild, sub_steps[index], channel)
+                                self.change_appeal_entry(guild, sub_steps[index], channel, appeals)
                             else:
                                 await ctx.send("Error while processing the channels")
                                 index -= 1
@@ -189,18 +218,11 @@ class Setup_Module(commands.Cog):
 
                 index += 1
 
-            self.save_json()
+            self.setup_helpers(guild, settings)
+
+
+            self.save_json(settings, appeals)
             await ctx.send("Setup finished!")
-
-
-with open('data/settings.json') as file:
-    settings = json.load(file)
-    file.close()
-
-
-with open('data/appeals.json') as file:
-    appeals = json.load(file)
-    file.close()
 
 
 def setup(bot):

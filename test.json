@@ -1,0 +1,23 @@
+{
+    "894160228239679490": {
+        "muted_role": 900820380573376553,
+        "lock_role": 900820380573376553,
+        "helper_role": 900820380573376553,
+        "mod_logs": 894160228906577963,
+        "scam_logs": 894160228906577963,
+        "slowmode_channels": [
+            {
+                "id": 894160228906577963,
+                "default_slowmode": 10
+            }
+        ],
+        "lockdown_channels": [
+            894160228906577963
+        ],
+        "helper_logs": 894160228906577963,
+        "suggestions_channels": [
+            894160228906577963
+        ],
+        "helpers": []
+    }
+}

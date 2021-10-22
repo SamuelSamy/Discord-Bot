@@ -5,15 +5,6 @@ import os
 from discord.ext import commands
 
 
-def init_bot(bot_prefix):
-    bot = commands.Bot(intents = discord.Intents.all(), command_prefix = bot_prefix)
-    return bot
-
-
-def run_bot(bot, config, token):
-    bot.run(config[token])    
-
-
 def load_packages(files, bot):
 
     for file in files:
@@ -22,13 +13,21 @@ def load_packages(files, bot):
             bot.load_extension(file[2:-3])
 
 
+def unload_packages(files, bot):
+
+    for file in files:
+        if file.endswith(".py"):
+            file = file.replace("/", ".")
+            bot.unload_extension(file[2:-3])
+
+
 def init_files(path_root, files):
 
     current_files = os.listdir(path_root)
 
     for file_path_name in current_files:
 
-        if os.path.isdir(f"{path_root}/{file_path_name}") and file_path_name != "__pycache__":
+        if os.path.isdir(f"{path_root}/{file_path_name}") and file_path_name not in ["__pycache__", "__classes"]:
             init_files(f"{path_root}/{file_path_name}", files)
         elif file_path_name.endswith('.py'):
             files.append(f"{path_root}/{file_path_name}")
@@ -43,20 +42,28 @@ def get_json_file(path):
     return json_f
 
 
-def main():
+prefixes = get_json_file('data/prefixes.json')
+config = get_json_file('data/config.json')
 
-    files = []
-    prefixes = get_json_file('data/prefixes.json')
-    config = get_json_file('data/config.json')
+files = []
+init_files('./cogs', files)
 
-    init_files('./cogs', files)
+bot = commands.Bot(intents = discord.Intents.all(), command_prefix = prefixes['894160228239679490'])
 
-    bot = init_bot(prefixes['894160228239679490'])
-
-    load_packages(files, bot)
-
-    run_bot(bot, config, 'main_token')
+load_packages(files, bot)
 
 
-main()
+@bot.command()
+async def restart(ctx):
+
+    if ctx.author.id == 225629057172111362:
+        try:
+            unload_packages(files, bot)
+            load_packages(files, bot)
+            await ctx.send("Modules restarted!")
+        except:
+            await ctx.send("Error while restarting")
+
+
+bot.run(config['main_token'])    
 

@@ -8,6 +8,8 @@ from discord import channel
 from discord.ext import commands
 from discord.utils import get
 
+from cogs.__classes.settings import *
+
 
 class Helper_Listener(commands.Cog):
     def __init__ (self, bot):
@@ -109,24 +111,26 @@ class Helper_Listener(commands.Cog):
         if not isinstance(message.channel, discord.DMChannel):   
 
             guild = message.guild
-            guild_id = str(guild)
+            guild_id = str(guild.id)
 
-            log_channel = self.bot.get_channel(settings[guild_id]['helper_logs'])
-            helper_role = guild.get_role(settings[guild_id]['helper_role'])
+            if settings[guild_id]:
 
-            fetched_logs = await guild.audit_logs(limit = 1).flatten()
+                log_channel = self.bot.get_channel(settings[guild_id][Settings.helper_logs.value])
+                helper_role = guild.get_role(settings[guild_id][Settings.helper_role.value])
 
-            if fetched_logs:
-                log = fetched_logs[0]
-                if  helper_role in log.user.roles:    
-                    if log.extra.channel.id == message.channel.id:
-                        if log.user.id != message.author.id:
+                fetched_logs = await guild.audit_logs(limit = 1).flatten()
 
-                            await log_channel.send(embed = self.generate_embed_message_delete(log.user, message))
-                            
-                            if len(message.attachments) > 1:
-                                for i in range(1, len(message.attachments)):
-                                    await log_channel.send(embed = self.generate_empty_embed_for_attachment(log.user, message, message.attachments[i]))
+                if fetched_logs:
+                    log = fetched_logs[0]
+                    if  helper_role in log.user.roles:    
+                        if log.extra.channel.id == message.channel.id:
+                            if log.user.id != message.author.id:
+
+                                await log_channel.send(embed = self.generate_embed_message_delete(log.user, message))
+                                
+                                if len(message.attachments) > 1:
+                                    for i in range(1, len(message.attachments)):
+                                        await log_channel.send(embed = self.generate_empty_embed_for_attachment(log.user, message, message.attachments[i]))
 
 
     @commands.Cog.listener("on_member_update")
@@ -135,10 +139,10 @@ class Helper_Listener(commands.Cog):
         if before.nick != after.nick:
 
             guild = after.guild
-            guild_id = str(guild)
+            guild_id = str(guild.id)
 
-            log_channel = self.bot.get_channel(settings[guild_id]['helper_logs'])
-            helper_role = guild.get_role(settings[guild_id]['helper_role'])
+            log_channel = self.bot.get_channel(settings[guild_id][Settings.helper_logs.value])
+            helper_role = guild.get_role(settings[guild_id][Settings.helper_role.value])
 
             fetched_logs = await guild.audit_logs(limit = 1, action = discord.AuditLogAction.member_update).flatten()
 
@@ -157,13 +161,13 @@ class Helper_Listener(commands.Cog):
         guild = after.guild
         guild_id = str(guild.id)
 
-        helper_role_id = settings[guild_id]['helper_role']
+        helper_role_id = settings[guild_id][Settings.helper_role.value]
         helper_role = guild.get_role(helper_role_id)
 
         if helper_role in after.roles and helper_role not in before.roles:
-            settings[guild_id]['helpers'].append(after.id)
-        elif helper_role in before.roles and helper_role not in after.roles and after.id in settings[guild_id]['helpers']:
-            settings[guild_id]['helpers'].remove(after.id)
+            settings[guild_id][Settings.helpers.value].append(after.id)
+        elif helper_role in before.roles and helper_role not in after.roles and after.id in settings[guild_id][Settings.helpers.value]:
+            settings[guild_id][Settings.helpers.value].remove(after.id)
 
 
         self.save_json()
@@ -176,7 +180,7 @@ class Helper_Listener(commands.Cog):
         helpers = "The following users are helpers:\n"
         guild_id = str(ctx.channel.guild.id)
 
-        for helper_id in settings[guild_id]['helpers']:
+        for helper_id in settings[guild_id][Settings.helpers.value]:
             helpers += f"• <@{helper_id}>\n"    
 
         if helpers == "The following users are helpers:\n":
@@ -194,7 +198,7 @@ class Helper_Listener(commands.Cog):
 
         guild_id = str(ctx.channel.guild.id)
 
-        settings[guild_id]['helper_logs'] = channel.id
+        settings[guild_id][Settings.helper_logs.value] = channel.id
         self.save_json()
 
         await ctx.send(f"<#{channel.id}> is now the helper logging channel")
@@ -209,16 +213,16 @@ class Helper_Listener(commands.Cog):
 
             guild_id = str(ctx.channel.guild.id)
 
-            old_helpers = len(settings[guild_id]['helpers'])
+            old_helpers = len(settings[guild_id][Settings.helpers.value])
             new_helpers = len(members)
 
-            settings[guild_id]['helpers'].clear()
+            settings[guild_id][Settings.helpers.value].clear()
 
 
             for member in members:
-                settings[guild_id]['helpers'].append(member.id)
+                settings[guild_id][Settings.helpers.value].append(member.id)
 
-            settings[guild_id]['helper_role'] = role.id
+            settings[guild_id][Settings.helper_role.value] = role.id
             self.save_json()
 
             await ctx.send(f"<@&{role.id}> is now the helper role!\n> {old_helpers} helpers were removed\n> {new_helpers} helpers were added")
