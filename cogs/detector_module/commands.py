@@ -19,6 +19,91 @@ class Detector_Module_Commands(commands.Cog):
             json.dump(blacklisted, f)
 
 
+    def get_first_part(self, message):
+        link = re.search("(?P<url>https?://[^\s]+)", message)
+        return link[0]
+
+
+    def reassmble_link(self, parts):
+        link = ""
+
+        for i in range(2, len(parts)):
+            link += parts[i] + "/"
+
+        return link[:-1]
+
+
+    def is_blacklisted(self, message):
+        links_in_message = re.findall("(?P<url>https?://[^\s]+)", message)
+
+        for link in links_in_message:
+            link_parts = link.split('/')
+
+            if len(link_parts) > 2:
+                to_verrify = self.reassmble_link(link_parts)
+
+                if to_verrify in blacklisted['scam_links']:
+                    return True
+
+        return False
+
+    
+    def is_possible_scam(self, message):
+        mask = "discord.gift"
+
+        links_in_message = re.findall("(?P<url>https?://[^\s]+)", message)
+
+        for link in links_in_message:
+            link_parts = link.split('/')
+
+            if len(link_parts) > 2:
+                to_verrify = link_parts[2]
+                
+                distance = self.levenshtein_distance(to_verrify, mask)
+
+                if distance > 0 and distance < 4:
+                    return True
+
+        return False
+
+
+    def levenshtein_distance(self, s, t):
+        # https://www.datacamp.com/community/tutorials/fuzzy-string-python?utm_source=adwords_ppc&utm_campaignid=14989519638&utm_adgroupid=127836677279&utm_device=c&utm_keyword=&utm_matchtype=b&utm_network=g&utm_adpostion=&utm_creative=332602034364&utm_targetid=dsa-429603003980&utm_loc_interest_ms=&utm_loc_physical_ms=9040263&gclid=CjwKCAjwwsmLBhACEiwANq-tXHKieLemSgdCcH-veD1PhSOzUHK06Hp2e0PcefOtwX7-w_yh8FCHlRoCq4kQAvD_BwE
+        rows = len(s)+1
+        cols = len(t)+1
+        
+        distance = []
+        
+        for i in range(0, rows):
+
+            row = []
+
+            for j in range(0, cols):
+                row.append(0)
+
+            distance.append(row) 
+
+
+        for i in range(1, rows):
+            for k in range(1,cols):
+                distance[i][0] = i
+                distance[0][k] = k
+
+        for col in range(1, cols):
+            for row in range(1, rows):
+                if s[row-1] == t[col-1]:
+                    cost = 0 
+                else:
+                    cost = 1
+
+                distance[row][col] = min(
+                    distance[row-1][col] + 1,  
+                    distance[row][col-1] + 1,          
+                    distance[row-1][col-1] + cost
+                )    
+        
+        return distance[row][col]
+
     @commands.command()
     @commands.has_permissions(administrator = True)
     async def check(self, ctx, *, message : str):

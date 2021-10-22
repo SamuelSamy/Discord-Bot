@@ -1,3 +1,4 @@
+from os import error
 import discord
 import json
 import re
@@ -62,7 +63,7 @@ class Detector_Module(commands.Cog):
         return False
 
     
-    async def send_to_logs(self, message):
+    async def send_to_mod_logs(self, message):
 
         server_invites = {
             "852143372353142785": "https://discord.gg/8KVh3qrKCA",
@@ -148,11 +149,11 @@ class Detector_Module(commands.Cog):
                             await message.delete()
 
                             scam_logs = self.bot.get_channel(settings[guild][Settings.scam_logs.value])
-                            await scam_logs.send(f"``` ```\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n`{message.content}`\n```")
+                            await scam_logs.send(f"``` ```\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n{message.content}\n```")
                             
-                            await self.send_to_logs()
+                            await self.send_to_mod_logs(message)
 
-                            await member.kick("Compromised Account")
+                            await member.kick(reason = "Compromised Account")
 
                         elif self.is_possible_scam(message.content):
 
@@ -161,15 +162,13 @@ class Detector_Module(commands.Cog):
                             scam_logs = self.bot.get_channel(settings[guild][Settings.scam_logs.value])
                             await scam_logs.send(f"``` ```\n**<@225629057172111362> THIS LINK IS NOT BLACKLISTED!**\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n`{message.content}`\n```")
                             
-                            await self.send_to_logs()
-
-                            await member.kick("Compromised Account")
-                
+                            await self.send_to_mod_logs(message)
+                            
+                            await member.kick(reason = "Compromised Account")
                 except:
-                    print ("Error - Scam Listner")
+                    print ("Error - Scam Lisnter")
 
 
-                
 
 with open('data/blacklist.json') as file:
     blacklisted = json.load(file)
@@ -179,6 +178,7 @@ with open('data/blacklist.json') as file:
 with open('data/settings.json') as file:
     settings = json.load(file)
     file.close()
+
 
 def setup(bot):
     bot.add_cog(Detector_Module(bot))   
