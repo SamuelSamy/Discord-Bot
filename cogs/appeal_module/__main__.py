@@ -516,6 +516,7 @@ class Appeal_Module(commands.Cog):
 
             author =  message.author
             guild = guilds[self.bot.user.id]
+
             try:
 
                 if not author.bot:

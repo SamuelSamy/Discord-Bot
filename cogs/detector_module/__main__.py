@@ -121,16 +121,18 @@ class Detector_Module(commands.Cog):
     @commands.Cog.listener("on_message")
     async def scam_listener(self, message):
 
-        try:
-            member = message.author
+        
+        member = message.author
+
+        if not (message.author.id == self.bot.user.id or isinstance(message.channel, discord.DMChannel) or message.content is None or type(member) != discord.Member):
+            
             guild = str(message.guild.id)
 
-            if not (message.author.id == self.bot.user.id or isinstance(message.channel, discord.DMChannel) or message.content is None or type(member) != discord.Member):
-                  
-                if not (member.guild_permissions.administrator or member.bot):
-                    
+            if not (member.guild_permissions.administrator or member.bot):
+                
+                try:
+
                     has_link = re.search("https?://", message.content, re.IGNORECASE)
-                    print (f"{has_link} - {message.content}")
 
                     if has_link:
 
@@ -155,9 +157,11 @@ class Detector_Module(commands.Cog):
                             await self.send_to_logs()
 
                             await member.kick("Compromised Account")
+                
+                except:
+                    print ("Error - Scam Listner")
 
-        except:
-            print ("Error - Scam Listener")
+
                 
 
 with open('data/blacklist.json') as file:

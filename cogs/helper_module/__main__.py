@@ -139,41 +139,48 @@ class Helper_Listener(commands.Cog):
     @commands.Cog.listener("on_member_update")
     async def helper_listener(self, before, after):
         
-        if before.nick != after.nick:
+        try:
 
-            guild = after.guild
-            guild_id = str(guild.id)
+            if before.nick != after.nick:
 
-            log_channel = self.bot.get_channel(settings[guild_id][Settings.helper_logs.value])
-            helper_role = guild.get_role(settings[guild_id][Settings.helper_role.value])
+                guild = after.guild
+                guild_id = str(guild.id)
 
-            fetched_logs = await guild.audit_logs(limit = 1, action = discord.AuditLogAction.member_update).flatten()
+                log_channel = self.bot.get_channel(settings[guild_id][Settings.helper_logs.value])
+                helper_role = guild.get_role(settings[guild_id][Settings.helper_role.value])
 
-            if fetched_logs:
-                log = fetched_logs[0]
+                fetched_logs = await guild.audit_logs(limit = 1, action = discord.AuditLogAction.member_update).flatten()
 
-                if  helper_role in log.user.roles:    
-                   if log.user.id != after.id:
-                        await log_channel.send(embed = self.generate_embed_nick_changed(log.user, before, after))
-   
+                if fetched_logs:
+                    log = fetched_logs[0]
+
+                    if  helper_role in log.user.roles:    
+                        if log.user.id != after.id:
+                                await log_channel.send(embed = self.generate_embed_nick_changed(log.user, before, after))
+        except:
+            print ("Mimber Update error - Helper")
+    
 
 
     @commands.Cog.listener("on_member_update")
     async def member_update(self, before, after):
         
-        guild = after.guild
-        guild_id = str(guild.id)
+        try:
+            guild = after.guild
+            guild_id = str(guild.id)
 
-        helper_role_id = settings[guild_id][Settings.helper_role.value]
-        helper_role = guild.get_role(helper_role_id)
+            helper_role_id = settings[guild_id][Settings.helper_role.value]
+            helper_role = guild.get_role(helper_role_id)
 
-        if helper_role in after.roles and helper_role not in before.roles:
-            settings[guild_id][Settings.helpers.value].append(after.id)
-        elif helper_role in before.roles and helper_role not in after.roles and after.id in settings[guild_id][Settings.helpers.value]:
-            settings[guild_id][Settings.helpers.value].remove(after.id)
+            if helper_role in after.roles and helper_role not in before.roles:
+                settings[guild_id][Settings.helpers.value].append(after.id)
+            elif helper_role in before.roles and helper_role not in after.roles and after.id in settings[guild_id][Settings.helpers.value]:
+                settings[guild_id][Settings.helpers.value].remove(after.id)
 
 
-        self.save_json()
+            self.save_json()
+        except:
+            print ("Member update error - Helper")
 
 
     @commands.command()
