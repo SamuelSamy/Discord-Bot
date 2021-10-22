@@ -460,7 +460,7 @@ class Appeal_Module(commands.Cog):
             color = 0x20e848
         )
 
-        instructions = f"> **•** Make sure your direct messages are **ON**!\n>  \n> **•** Press the `Appeal` button below.\n>  \n> **•** <@{867480262777765918}> will message you.\n>      Follow the instructions in order to submit your appeal!"
+        instructions = f"> **•** Make sure your direct messages are **ON**!\n>  \n> **•** Press the `Appeal` button below.\n>  \n> **•** <@{self.bot.user.id}> will message you.\n>      Follow the instructions in order to submit your appeal!"
 
         embedVar.add_field(
             name = "How to appeal ❓", 
