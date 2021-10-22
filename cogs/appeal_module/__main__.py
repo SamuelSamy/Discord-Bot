@@ -407,9 +407,9 @@ class Appeal_Module(commands.Cog):
         message_for_user = ""
 
         if answer == 1:
-            message_for_user = f"Hello <@{user_id}>\n\nYou are unbanned from the game and have recieved a second chance\nIf you use Exploits / Hacks again your next ban will be permanent.\n\n-Anime Fighters Administration Team"
+            message_for_user = f"Hello <@{user_id}>\n\nYou are unbanned from the game and have recieved a second chance\nIf you use Exploits / Hacks again your next ban will be permanent.\n\n"
         elif answer == -1:
-            message_for_user = f"Hello <@{user_id}>\n\nYour ban appeal was reviewed by a administrator\nIt was denied and you can re-appeal your ban <t:{round(time.time() + appeals[guild]['cooldown'])}:R>\nYou are not able to appeal your ban anymore if you have been unbanned before\n\n-Anime Fighters Administration Team"
+            message_for_user = f"Hello <@{user_id}>\n\nYour ban appeal was reviewed by a administrator\nIt was denied and you can re-appeal your ban <t:{round(time.time() + appeals[guild]['cooldown'])}:R>\nYou are not able to appeal your ban anymore if you have been unbanned before\n\n"
         else:
             message_for_user = f"Hello <@{user_id}>\n\nYou have recentlly misused our ban appeal system.\nIf you continue to do so you will be punished."
 
