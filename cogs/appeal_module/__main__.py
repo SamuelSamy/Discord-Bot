@@ -106,7 +106,7 @@ class Appeal_Module(commands.Cog):
                 answer_list.append(appeal[Appeal.response.value])
 
         deny = "<:redTick:897104673150996533>"
-        accept = "<:greenTick:897104713982541865>"
+        accept = "<:greenTick:901197496276111451>"
         warn = "⚠️"
 
         actaul_string = ""
