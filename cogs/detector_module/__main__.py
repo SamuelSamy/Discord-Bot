@@ -63,6 +63,13 @@ class Detector_Module(commands.Cog):
 
     
     async def send_to_logs(self, message):
+
+        server_invites = {
+            "852143372353142785": "https://discord.gg/8KVh3qrKCA",
+            "894160228239679490": "https://discord.gg/NqHbGEUVQ9",
+            "876988765955039273": "https://discord.gg/VH8UJHYytx"
+        }
+
         member = message.author
         guild = str(message.guild.id)
         
@@ -75,7 +82,7 @@ class Detector_Module(commands.Cog):
         embed.add_field(name = "Moderator", value = self.bot.user.mention)
         embed.add_field(name = "Reason", value = "Compromised Account")
     
-        await member.send(f"Hello {member.mention}\nYou were kicked from {message.guild} because your account was recentlly ")
+        await member.send(f"Hello {member.mention}\nYou were kicked from {message.guild} because your account was recentlly hacked.\n*Note: If this was a mistake you can join the server using the following link:*{server_invites[guild]}")
 
         await mod_logs.send(embed = embed)
 
