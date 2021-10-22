@@ -1,8 +1,10 @@
 import discord
 import json
 import os
+import datetime, time
 
 from discord.ext import commands
+from discord.ext.commands.core import has_permissions
 
 
 def load_packages(files, bot):
@@ -64,6 +66,18 @@ async def restart(ctx):
         except:
             await ctx.send("Error while restarting")
 
+@bot.event
+async def on_ready():
+    global startTime
+    startTime = round(time.time())
+
+
+@bot.command()
+@has_permissions(manage_messages = True)
+async def uptime(ctx):
+    uptime = str(datetime.timedelta(seconds = int(round(time.time() - startTime))))
+    await ctx.send(f"Uptime: {uptime}")
+    
 
 bot.run(config['bura_token'])    
 

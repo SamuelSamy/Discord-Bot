@@ -19,20 +19,11 @@ class Info_Handler(commands.Cog):
 
     @commands.Cog.listener("on_ready")
     async def _on_ready(self):
-        global startTime
-        startTime = round(time.time())
 
         DiscordComponents(self.bot)
         
         print("Bot is ready!")
         
-
-    @commands.command()
-    @commands.has_permissions(administrator = True)
-    async def uptime(self, ctx):
-        uptime = str(datetime.timedelta(seconds = int(round(time.time() - startTime))))
-        await ctx.send(f"Uptime: {uptime}")
-
     
     @commands.command()
     @commands.has_permissions(administrator = True)
