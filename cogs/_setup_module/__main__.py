@@ -49,8 +49,7 @@ class Setup_Module(commands.Cog):
             "delete_time": 3600,
             "appeals": [],
             "sent_appeals": [],
-            "handled_appeals": [], 
-            "warns": []
+            "handled_appeals": []
         }
 
 
