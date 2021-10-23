@@ -53,8 +53,10 @@ class Detector_Module_Commands(commands.Cog):
         links_in_message = re.findall("(?P<url>https?://[^\s]+)", message)
 
         masks = []
+
         for mask in blacklisted['masks']:
-            masks.append(masks)
+            masks.append(str(mask))
+
 
         for link in links_in_message:
             link_parts = link.split('/')
@@ -65,11 +67,11 @@ class Detector_Module_Commands(commands.Cog):
                 for mask in masks:
                     
                     distance = self.levenshtein_distance(to_verrify, mask)
-                    
-                    if distance > 0 and distance < 4 and to_verrify not in masks:
-                        return True
 
-        return False
+                    if distance < int(blacklisted['masks'][mask]) and to_verrify not in masks:
+                        return distance
+
+        return 0
 
 
     def levenshtein_distance(self, s, t):
@@ -108,17 +110,6 @@ class Detector_Module_Commands(commands.Cog):
                 )    
         
         return distance[row][col]
-
-    @commands.command()
-    @commands.has_permissions(administrator = True)
-    async def check(self, ctx, *, message : str):
-        
-        if self.is_blacklisted(message):
-            await ctx.send("This link is blacklisted")
-        elif self.is_possible_scam(message):
-            await ctx.send("This link is not blacklisted but it is a possible scam link")
-        else:
-            await ctx.send("This link is not blacklisted and it is not detected as a scam link")
 
 
     @commands.command()
@@ -180,6 +171,18 @@ class Detector_Module_Commands(commands.Cog):
 
         await ctx.send(f"{message}```")
     
+
+    @commands.command()
+    @commands.has_permissions(administrator = True)
+    async def check(self, ctx, *, message : str):
+        
+        if self.is_blacklisted(message):
+            await ctx.send("This link is blacklisted")
+        else:
+            value = self.is_possible_scam(message)
+            await ctx.send(f"Levenshtein Distance: {value}")
+
+
     @commands.command()
     @commands.has_permissions(administrator = True)
     async def check_by_id(self, ctx, channel_id, message_id):
@@ -190,11 +193,9 @@ class Detector_Module_Commands(commands.Cog):
 
         if self.is_blacklisted(message):
             await ctx.send("This link is blacklisted")
-        elif self.is_possible_scam(message):
-            await ctx.send("This link is not blacklisted but it is a possible scam link")
         else:
-            await ctx.send("This link is not blacklisted and it is not detected as a scam link")
-
+            value = self.is_possible_scam(message)
+            await ctx.send(f"Levenshtein Distance: {value}")
 
 with open('data/blacklist.json') as file:
     blacklisted = json.load(file)

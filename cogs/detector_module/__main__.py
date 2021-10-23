@@ -49,8 +49,10 @@ class Detector_Module(commands.Cog):
         links_in_message = re.findall("(?P<url>https?://[^\s]+)", message)
 
         masks = []
+
         for mask in blacklisted['masks']:
-            masks.append(masks)
+            masks.append(str(mask))
+
 
         for link in links_in_message:
             link_parts = link.split('/')
@@ -61,11 +63,11 @@ class Detector_Module(commands.Cog):
                 for mask in masks:
                     
                     distance = self.levenshtein_distance(to_verrify, mask)
-                    
-                    if distance > 0 and distance < 4 and to_verrify not in masks:
-                        return True
 
-        return False
+                    if distance < int(blacklisted['masks'][mask]) and to_verrify not in masks:
+                        return distance
+
+        return 0
 
     
     async def send_to_mod_logs(self, message):
