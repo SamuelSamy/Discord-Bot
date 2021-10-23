@@ -144,28 +144,30 @@ class Detector_Module(commands.Cog):
             if not (member.guild_permissions.administrator or member.bot):
                 
                 try:
+                    
+                    message_content = message.content.replace('\x00', '')
 
-                    has_link = re.search("https?://", message.content, re.IGNORECASE)
+                    has_link = re.search("https?://", message_content, re.IGNORECASE)
 
                     if has_link:
 
-                        if self.is_blacklisted(message.content):
+                        if self.is_blacklisted(message_content):
 
                             await message.delete()
 
                             scam_logs = self.bot.get_channel(settings[guild][Settings.scam_logs.value])
-                            await scam_logs.send(f"``` ```\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n{message.content}\n```")
+                            await scam_logs.send(f"``` ```\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n{message_content}\n```")
                             
                             await self.send_to_mod_logs(message)
 
                             await member.kick(reason = "Compromised Account")
 
-                        elif self.is_possible_scam(message.content):
+                        elif self.is_possible_scam(message_content):
 
                             await message.delete()
 
                             scam_logs = self.bot.get_channel(settings[guild][Settings.scam_logs.value])
-                            await scam_logs.send(f"``` ```\n**<@225629057172111362> THIS LINK IS NOT BLACKLISTED!**\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n`{message.content}`\n```")
+                            await scam_logs.send(f"``` ```\n**<@225629057172111362> THIS LINK IS NOT BLACKLISTED!**\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n`{message_content}`\n```")
                             
                             await self.send_to_mod_logs(message)
                             

@@ -179,7 +179,22 @@ class Detector_Module_Commands(commands.Cog):
             message += f"• {mask} ({value})\n"
 
         await ctx.send(f"{message}```")
-  
+    
+    @commands.command()
+    @commands.has_permissions(administrator = True)
+    async def check_by_id(self, ctx, channel_id, message_id):
+
+        channel = self.bot.get_channel(int(channel_id))
+        message = await channel.fetch_message(int(message_id))
+        message = message.content.replace('\x00', '')
+
+        if self.is_blacklisted(message):
+            await ctx.send("This link is blacklisted")
+        elif self.is_possible_scam(message):
+            await ctx.send("This link is not blacklisted but it is a possible scam link")
+        else:
+            await ctx.send("This link is not blacklisted and it is not detected as a scam link")
+
 
 with open('data/blacklist.json') as file:
     blacklisted = json.load(file)

@@ -48,7 +48,7 @@ prefixes = get_json_file('data/prefixes.json')
 config = get_json_file('data/config.json')
 
 files = []
-init_files('./cogs', files)
+init_files('./testing_cogs', files)
 
 bot = commands.Bot(intents = discord.Intents.all(), command_prefix = prefixes['894160228239679490'])
 
