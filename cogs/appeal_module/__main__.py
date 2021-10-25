@@ -306,11 +306,16 @@ class Appeal_Module(commands.Cog):
         embed = discord.Embed(
             color = _color
         )
-       
-        embed.set_author(
-            name = f"{user}",
-            icon_url = user.avatar_url
-        )
+
+        if user is not None:
+            embed.set_author(
+                name = f"{user}",
+                icon_url = user.avatar_url
+            )
+        else:
+            embed.set_author(
+                name = "User left the server"
+            )
 
         embed.add_field(
             name = "Discord Profile",
