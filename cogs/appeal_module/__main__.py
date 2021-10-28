@@ -108,7 +108,7 @@ class Appeal_Module(commands.Cog):
         deny = "<:redTick:897104673150996533>"
         accept = "<:greenTick:901197496276111451>"
         warn = "⚠️"
-
+        
         actaul_string = ""
 
         for i in range(0, len(ids_list)):
@@ -119,7 +119,7 @@ class Appeal_Module(commands.Cog):
             else:
                 emoji = warn
 
-            actaul_string += f"{emoji} ID: {ids_list[i]} at <t:{time_list[i]}> (<t:{time_list[i]}:R>)\n"
+            actaul_string += f"{emoji} ID: {ids_list[i]} (<t:{time_list[i]}:R>)\n"
 
         
         return actaul_string    
@@ -127,7 +127,7 @@ class Appeal_Module(commands.Cog):
 
 
     def generate_appeal(self, guild, appeal_message, prev_appeal = True):
-
+        print ("trying to generate")
         try:
             appeal_id = appeal_message[Appeal.id.value]
 
@@ -156,6 +156,7 @@ class Appeal_Module(commands.Cog):
                 value = f"{user.mention}  -  {user_id}",
                 inline = False
             )    
+            print("3")
 
             embed.add_field(
                 name = "Roblox Profile",
@@ -163,12 +164,14 @@ class Appeal_Module(commands.Cog):
                 inline = False
             )                   
                     
-
+            print(ban_reason)
+        
             embed.add_field(
                 name = "Why were you banned?",
                 value = ban_reason,
                 inline = False
             )
+            print(unban_reason)
 
             embed.add_field(
                 name = "Why do you think you should be unbanned?",
@@ -196,6 +199,7 @@ class Appeal_Module(commands.Cog):
                     logs = f"{warn} **ID: {appeal_message[Appeal.id.value]}** at <t:{appeal_message[Appeal.response_time.value]}> (<t:{appeal_message[Appeal.response_time.value]}:R>)"
 
 
+            print(logs)
 
             if logs != "":
                 embed.add_field(
@@ -207,7 +211,7 @@ class Appeal_Module(commands.Cog):
 
             embed.add_field(
                 name = "Sent at",
-                value = f"<t:{sent_at}>",
+                value = f"<t:{sent_at}> (<t:{sent_at}:R>)",
                 inline = False
             )
 
@@ -302,7 +306,6 @@ class Appeal_Module(commands.Cog):
             _color = 0xd6c315
             emoji = "⚠️"
 
-
         embed = discord.Embed(
             color = _color
         )
@@ -357,7 +360,7 @@ class Appeal_Module(commands.Cog):
     def cancel_appeal(self, guild, appeal_message):
 
         if appeal_message is not None:
-
+            print (appeal_message)
             appeals[guild]['appeals'].remove(appeal_message)
 
             self.save_json()
@@ -666,25 +669,29 @@ class Appeal_Module(commands.Cog):
                                     ]
                                 ]
 
-                                try:
 
-                                    appeals[guild]['appeals'].remove(appeal_message)
 
-                                    await appeal_channel.send(
-                                        embed = self.generate_appeal(guild, appeal_message),
-                                        components = comps
-                                    )
+                                # try:
 
-                                    appeals[guild]['sent_appeals'].append(appeal_message)
 
-                                    self.save_json()
+                                await appeal_channel.send(
+                                    embed = self.generate_appeal(guild, appeal_message),
+                                    components = comps
+                                )
 
-                                    await author.send(steps[3])
+                                appeals[guild]['sent_appeals'].append(appeal_message)
 
-                                except error:
-                                    print (error)
-                                    self.cancel_appeal(guild, appeal_message)
-                                    await author.send("There was an error while sending the appeal.\nIf you see this message contact <@225629057172111362> (greater#2407).")
+
+                                await author.send(steps[3])
+
+                                # except:
+                                #     self.cancel_appeal(guild, appeal_message)
+                                #     await author.send("There was an error while sending the appeal.\nIf you see this message contact <@225629057172111362> (greater#2407).")
+           
+
+                                appeals[guild]['appeals'].remove(appeal_message)
+                                self.save_json()
+
             except error:
                 print (error)
 
