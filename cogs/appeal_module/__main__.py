@@ -127,7 +127,6 @@ class Appeal_Module(commands.Cog):
 
 
     def generate_appeal(self, guild, appeal_message, prev_appeal = True):
-        print ("trying to generate")
         try:
             appeal_id = appeal_message[Appeal.id.value]
 
@@ -156,7 +155,6 @@ class Appeal_Module(commands.Cog):
                 value = f"{user.mention}  -  {user_id}",
                 inline = False
             )    
-            print("3")
 
             embed.add_field(
                 name = "Roblox Profile",
@@ -164,14 +162,12 @@ class Appeal_Module(commands.Cog):
                 inline = False
             )                   
                     
-            print(ban_reason)
         
             embed.add_field(
                 name = "Why were you banned?",
                 value = ban_reason,
                 inline = False
             )
-            print(unban_reason)
 
             embed.add_field(
                 name = "Why do you think you should be unbanned?",
@@ -199,7 +195,6 @@ class Appeal_Module(commands.Cog):
                     logs = f"{warn} **ID: {appeal_message[Appeal.id.value]}** at <t:{appeal_message[Appeal.response_time.value]}> (<t:{appeal_message[Appeal.response_time.value]}:R>)"
 
 
-            print(logs)
 
             if logs != "":
                 embed.add_field(
@@ -360,7 +355,6 @@ class Appeal_Module(commands.Cog):
     def cancel_appeal(self, guild, appeal_message):
 
         if appeal_message is not None:
-            print (appeal_message)
             appeals[guild]['appeals'].remove(appeal_message)
 
             self.save_json()
