@@ -507,21 +507,25 @@ class Appeal_Module(commands.Cog):
             guild = str(interaction.guild.id)
 
 
-            if id == "appeal_button":
-                await self.create_appeal(interaction)
-            elif id.startswith("accept_appeal_btn-"):
-                await self.answer_appeal(guild, self.get_appeal_id(id), 1, interaction.author.id)
-                await interaction.message.delete()
-            elif id.startswith("deny_appeal_btn-"):
-                await self.answer_appeal(guild, self.get_appeal_id(id), -1, interaction.author.id)
-                await interaction.message.delete()
-            elif id.startswith("delete_appeal_btn-"):
-                await self.delete_appeal(guild, self.get_appeal_id(id))
-                await interaction.message.delete()
-            elif id.startswith("warn_appeal_btn-"):
-                await self.answer_appeal(guild, self.get_appeal_id(id), -100, interaction.author.id)
-                await interaction.message.delete()
+            try:
 
+                if id == "appeal_button":
+                    await self.create_appeal(interaction)
+                elif id.startswith("accept_appeal_btn-"):
+                    await self.answer_appeal(guild, self.get_appeal_id(id), 1, interaction.author.id)
+                    await interaction.message.delete()
+                elif id.startswith("deny_appeal_btn-"):
+                    await self.answer_appeal(guild, self.get_appeal_id(id), -1, interaction.author.id)
+                    await interaction.message.delete()
+                elif id.startswith("delete_appeal_btn-"):
+                    await self.delete_appeal(guild, self.get_appeal_id(id))
+                    await interaction.message.delete()
+                elif id.startswith("warn_appeal_btn-"):
+                    await self.answer_appeal(guild, self.get_appeal_id(id), -100, interaction.author.id)
+                    await interaction.message.delete()
+            except:
+                print ("Unexpected error - Appeal Button Listener")
+                
 
     @commands.Cog.listener("on_ready")
     async def dm_listener(self):

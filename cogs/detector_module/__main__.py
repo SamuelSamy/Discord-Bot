@@ -136,46 +136,49 @@ class Detector_Module(commands.Cog):
     @commands.Cog.listener("on_message")
     async def scam_listener(self, message):
 
-        
-        member = message.author
+        try:
 
-        if not (message.author.id == self.bot.user.id or isinstance(message.channel, discord.DMChannel) or message.content is None or type(member) != discord.Member):
-            
-            guild = str(message.guild.id)
+            member = message.author
 
-            if not (member.guild_permissions.administrator or member.bot):
+            if not (message.author.id == self.bot.user.id or isinstance(message.channel, discord.DMChannel) or message.content is None or type(member) != discord.Member):
                 
-                try:
+                guild = str(message.guild.id)
+
+                if not (member.guild_permissions.administrator or member.bot):
                     
-                    message_content = message.content.replace('\x00', '')
+                    try:
+                        
+                        message_content = message.content.replace('\x00', '')
 
-                    has_link = re.search("https?://", message_content, re.IGNORECASE)
+                        has_link = re.search("https?://", message_content, re.IGNORECASE)
 
-                    if has_link:
+                        if has_link:
 
-                        if self.is_blacklisted(message_content):
+                            if self.is_blacklisted(message_content):
 
-                            await message.delete()
+                                await message.delete()
 
-                            scam_logs = self.bot.get_channel(settings[guild][Settings.scam_logs.value])
-                            await scam_logs.send(f"``` ```\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n{message_content}\n```")
-                            
-                            await self.send_to_mod_logs(message)
+                                scam_logs = self.bot.get_channel(settings[guild][Settings.scam_logs.value])
+                                await scam_logs.send(f"``` ```\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n{message_content}\n```")
+                                
+                                await self.send_to_mod_logs(message)
 
-                            await member.kick(reason = "Compromised Account")
+                                await member.kick(reason = "Compromised Account")
 
-                        elif self.is_possible_scam(message_content):
+                            elif self.is_possible_scam(message_content):
 
-                            await message.delete()
+                                await message.delete()
 
-                            scam_logs = self.bot.get_channel(settings[guild][Settings.scam_logs.value])
-                            await scam_logs.send(f"``` ```\n**<@225629057172111362> THIS LINK IS NOT BLACKLISTED!**\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n`{message_content}`\n```")
-                            
-                            await self.send_to_mod_logs(message)
-                            
-                            await member.kick(reason = "Compromised Account")
-                except:
-                    print ("Error - Scam Lisnter")
+                                scam_logs = self.bot.get_channel(settings[guild][Settings.scam_logs.value])
+                                await scam_logs.send(f"``` ```\n**<@225629057172111362> THIS LINK IS NOT BLACKLISTED!**\n**Message sent by**: {message.author.mention}\n**Content:**\n```\n`{message_content}`\n```")
+                                
+                                await self.send_to_mod_logs(message)
+                                
+                                await member.kick(reason = "Compromised Account")
+                    except:
+                        print ("Error - Scam Lisnter")
+        except:
+            print ("Error - Scam Lisnter")
 
 
 

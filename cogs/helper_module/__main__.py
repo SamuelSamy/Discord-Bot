@@ -108,34 +108,38 @@ class Helper_Listener(commands.Cog):
     @commands.Cog.listener()
     async def on_message_delete(self, message):
 
-        if not isinstance(message.channel, discord.DMChannel):   
+        try:
+            if not isinstance(message.channel, discord.DMChannel):   
 
-            guild = message.guild
-            guild_id = str(guild.id)
+                guild = message.guild
+                guild_id = str(guild.id)
 
-            try:
+                try:
 
-                if settings[guild_id]:
-                    
-                    log_channel = self.bot.get_channel(settings[guild_id][Settings.helper_logs.value])
-                    helper_role = guild.get_role(settings[guild_id][Settings.helper_role.value])
+                    if settings[guild_id]:
+                        
+                        log_channel = self.bot.get_channel(settings[guild_id][Settings.helper_logs.value])
+                        helper_role = guild.get_role(settings[guild_id][Settings.helper_role.value])
 
-                    fetched_logs = await guild.audit_logs(limit = 1).flatten()
+                        fetched_logs = await guild.audit_logs(limit = 1).flatten()
 
-                    if fetched_logs:
-                        log = fetched_logs[0]
-                        if  helper_role in log.user.roles:    
-                            if log.extra.channel.id == message.channel.id:
-                                if log.user.id != message.author.id:
+                        if fetched_logs:
+                            log = fetched_logs[0]
+                            if  helper_role in log.user.roles:    
+                                if log.extra.channel.id == message.channel.id:
+                                    if log.user.id != message.author.id:
 
-                                    await log_channel.send(embed = self.generate_embed_message_delete(log.user, message))
-                                    
-                                    if len(message.attachments) > 1:
-                                        for i in range(1, len(message.attachments)):
-                                            await log_channel.send(embed = self.generate_empty_embed_for_attachment(log.user, message, message.attachments[i]))
-            except:
-                print("Error on messge_delete (helper)")
+                                        await log_channel.send(embed = self.generate_embed_message_delete(log.user, message))
+                                        
+                                        if len(message.attachments) > 1:
+                                            for i in range(1, len(message.attachments)):
+                                                await log_channel.send(embed = self.generate_empty_embed_for_attachment(log.user, message, message.attachments[i]))
+                except:
+                    print("Error on messge_delete (helper)")
+        except:
+            print("Error on messge_delete (helper)")
 
+            
     @commands.Cog.listener("on_member_update")
     async def helper_listener(self, before, after):
         
