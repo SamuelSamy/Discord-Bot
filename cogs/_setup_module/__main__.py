@@ -47,6 +47,7 @@ class Setup_Module(commands.Cog):
             "appeal_logs": 0,
             "cooldown": 432000,
             "delete_time": 3600,
+            "accepting_appeals": True,
             "appeals": [],
             "sent_appeals": [],
             "handled_appeals": []
