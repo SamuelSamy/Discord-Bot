@@ -23,7 +23,7 @@ class Slowmode_Module(commands.Cog):
         finalMessage = ""
 
         for channel in channels:
-            message = "**Channel:** <#{}>\n**Default slowmode:** {} seconds\n\n".format(str(channel['id']), str(channel['defaultSlowmode']))
+            message = "**Channel:** <#{}>\n**Default slowmode:** {} seconds\n\n".format(str(channel['id']), str(channel['default_slowmode']))
             finalMessage += message
 
         if finalMessage == "":
@@ -63,7 +63,7 @@ class Slowmode_Module(commands.Cog):
             message = "null"
 
             if Type == "default":
-                newSlowmode = channel['defaultSlowmode'] 
+                newSlowmode = channel['default_slowmode'] 
                 message = "Slowmode set to default"
             elif Type == "add":
                 newSlowmode = currentSlowmode + seconds
@@ -79,7 +79,7 @@ class Slowmode_Module(commands.Cog):
 
     @commands.command(name = "Slowmode", aliases = ['sc'])
     @commands.has_permissions(administrator = True)
-    async def slowmodechannel(self, ctx, Type, channel : discord.TextChannel, defaultSlowmode = 5):
+    async def slowmodechannel(self, ctx, Type, channel : discord.TextChannel, default_slowmode = 5):
 
         types = ["add", "remove", "change"]
 
@@ -91,7 +91,7 @@ class Slowmode_Module(commands.Cog):
 
         channelDict = {
             "id" : channel.id,
-            "defaultSlowmode" : defaultSlowmode
+            "default_slowmode" : default_slowmode
         }
 
         message = ""
@@ -102,7 +102,7 @@ class Slowmode_Module(commands.Cog):
         if Type == "add":
             if channelDict not in settings[guild_id][Settings.slowmode_channels.value]:
                 settings[guild_id][Settings.slowmode_channels.value].append(channelDict)
-                message = "<#{}> added with `defaultSlowmode = {}`".format(channel.id, defaultSlowmode)
+                message = "<#{}> added with `default_slowmode = {}`".format(channel.id, default_slowmode)
             else:
                 message = "This channel is already added! Use `slowmodechannel change` to edit this channel's settings!"
 
@@ -127,8 +127,8 @@ class Slowmode_Module(commands.Cog):
 
             for i in range(0, dictLen):
                 if settings[guild_id][Settings.slowmode_channels.value][i]['id'] == channel.id:
-                    settings[guild_id][Settings.slowmode_channels.value][i]['defaultSlowmode'] = defaultSlowmode 
-                    message = "Default slowmode was changed for <#{}> to {}!".format(channel.id, defaultSlowmode)
+                    settings[guild_id][Settings.slowmode_channels.value][i]['default_slowmode'] = default_slowmode 
+                    message = "Default slowmode was changed for <#{}> to {}!".format(channel.id, default_slowmode)
                     found = True
                     break
                     
@@ -154,9 +154,9 @@ class Slowmode_Module(commands.Cog):
 
 
 class Channel():
-    def __init__(self, id, defaultSlowmode):
+    def __init__(self, id, default_slowmode):
         self.id = id
-        self.defaultSlowmode = defaultSlowmode
+        self.default_slowmode = default_slowmode
 
 
 with open('data/settings.json') as settingsFile:
