@@ -86,7 +86,7 @@ class Slowmode_Module(commands.Cog):
         Type = Type.lower()
 
         if Type not in types:
-            await ctx.send("Make sure you follow the format: `{}slowmodechannel [Add / Remove / Change] [Channel] <Slowmode>`".format(commands.Cog.command_prefix))
+            await ctx.send("Make sure you follow the format: `slowmodechannel [Add / Remove / Change] [Channel] <Slowmode>`")
             return
 
         channelDict = {
@@ -104,7 +104,8 @@ class Slowmode_Module(commands.Cog):
                 settings[guild_id][Settings.slowmode_channels.value].append(channelDict)
                 message = "<#{}> added with `defaultSlowmode = {}`".format(channel.id, defaultSlowmode)
             else:
-                message = "This channel is already added! Use `{}slowmodechannel change` to edit this channel's settings!".format(commands.Cog.command_prefix)
+                message = "This channel is already added! Use `slowmodechannel change` to edit this channel's settings!"
+
         
         elif Type == "remove":
             dictLen = len(settings[guild_id][Settings.slowmode_channels.value])
@@ -143,13 +144,13 @@ class Slowmode_Module(commands.Cog):
     @slowmodechannel.error
     async def slowmode_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Make sure you follow the format: `{}slowmodechannel [Add / Remove / Change] [Channel] <Slowmode>`".format(commands.Cog.command_prefix))
+            await ctx.send("Make sure you follow the format: `slowmodechannel [Add / Remove / Change] [Channel] <Slowmode>`")
 
 
     @globalslowmode.error
     async def slowmode_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Make sure you follow the format: `{}globalslowmode [Set / Add / Default] <Seconds>`".format(commands.Cog.command_prefix))
+            await ctx.send("Make sure you follow the format: `globalslowmode [Set / Add / Default] <Seconds>`")
 
 
 class Channel():
