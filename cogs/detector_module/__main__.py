@@ -50,7 +50,7 @@ class Detector_Module(commands.Cog):
                             
                             await send_to_mod_logs(self, message, settings)
 
-                            #await member.kick(reason = "Compromised Account")
+                            await member.kick(reason = "Compromised Account")
 
                             if not on_blacklist:
                                 await send_link_to_logs(self, message_content)
