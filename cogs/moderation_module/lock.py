@@ -16,6 +16,7 @@ class Lock_Module(commands.Cog):
         self.lock_role = 903399550889361428
 
     @commands.command()
+    @commands.has_permissions(manage_channels = True)
     async def lock(self, ctx, channel : typing.Optional[discord.TextChannel], *, message = ""):
 
         user = ctx.message.author
@@ -52,6 +53,7 @@ class Lock_Module(commands.Cog):
 
 
     @commands.command()
+    @commands.has_permissions(manage_channels = True)
     async def unlock(self, ctx, channel : typing.Optional[discord.TextChannel], *, message = ""):
 
         user = ctx.message.author
@@ -89,6 +91,7 @@ class Lock_Module(commands.Cog):
     
 
     @commands.command()
+    @commands.has_permissions(manage_channels = True)
     async def lockdown(self, ctx, Type, *, message = ""):
         
         user = ctx.message.author

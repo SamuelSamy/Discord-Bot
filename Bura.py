@@ -56,6 +56,7 @@ load_packages(files, bot)
 
 
 @bot.command()
+@has_permissions(administrator = True)
 async def restart(ctx):
 
     if ctx.author.id == 225629057172111362:
@@ -73,7 +74,7 @@ async def on_ready():
 
 
 @bot.command()
-@has_permissions(manage_messages = True)
+@has_permissions(administrator = True)
 async def uptime(ctx):
     uptime = str(datetime.timedelta(seconds = int(round(time.time() - startTime))))
     await ctx.send(f"Uptime: {uptime}")
@@ -81,7 +82,6 @@ async def uptime(ctx):
 
 class NewHelpName(commands.MinimalHelpCommand):
     
-    @has_permissions(administrator = True)
     async def send_pages(self):
         destination = self.get_destination()
         for page in self.paginator.pages:
@@ -90,6 +90,7 @@ class NewHelpName(commands.MinimalHelpCommand):
 
 
 bot.help_command = NewHelpName()
+
 
 bot.run(config['bura_token'])    
 

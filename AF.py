@@ -82,15 +82,20 @@ async def uptime(ctx):
 
 class NewHelpName(commands.MinimalHelpCommand):
     
-    @has_permissions(administrator = True)
-    async def send_pages(self):
-        destination = self.get_destination()
+    def get_pages(self):
         for page in self.paginator.pages:
             emby = discord.Embed(description=page)
-            await destination.send(embed=emby)
+            return emby
 
 
-bot.help_command = NewHelpName()
+@bot.command()
+@has_permissions(administrator = True)
+async def help(ctx):
+    help_class = NewHelpName()
+    await ctx.send(help_class.get_pages())
+
+
+bot.help_command = help
 
 
 bot.run(config['anime_fighters_token'])    
