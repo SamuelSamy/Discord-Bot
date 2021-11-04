@@ -1,5 +1,4 @@
-from math import e
-from os import error, stat
+from os import error
 import time
 import discord
 import json
@@ -698,11 +697,12 @@ class Appeal_Module(commands.Cog):
 
                                     appeals[guild]['appeals'].remove(appeal_message)
                                     self.save_json()
-
+                        else:
+                            await author.send("⛔ Appeals are closed at this time. Please try again later!")
+                            
                 except error:
                     print (error)
-            else:
-                await author.send("⛔ Appeals are closed at this time. Please try again later!")
+            
 
                 
     @commands.command()
