@@ -31,7 +31,7 @@ def init_files(path_root, files):
 
         if os.path.isdir(f"{path_root}/{file_path_name}") and file_path_name not in ["__pycache__", "__classes"]:
             init_files(f"{path_root}/{file_path_name}", files)
-        elif file_path_name.endswith('.py'):
+        elif file_path_name.endswith('.py') and not file_path_name.startswith('package'):
             files.append(f"{path_root}/{file_path_name}")
 
 
