@@ -2,3 +2,4 @@ data
 testing_cogs
 test.json
 .todo
+**/__pycache__/**
