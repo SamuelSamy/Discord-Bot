@@ -80,5 +80,18 @@ async def uptime(ctx):
     await ctx.send(f"Uptime: {uptime}")
 
 
+class NewHelpName(commands.MinimalHelpCommand):
+    
+    @has_permissions(administrator = True)
+    async def send_pages(self):
+        destination = self.get_destination()
+        for page in self.paginator.pages:
+            emby = discord.Embed(description=page)
+            await destination.send(embed=emby)
+
+
+bot.help_command = NewHelpName()
+
+
 bot.run(config['main_token'])    
 
