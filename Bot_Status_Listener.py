@@ -20,7 +20,7 @@ async def on_ready():
     print ("Bot is ready")
 
 
-@tasks.loop(seconds = 5)
+@tasks.loop(seconds = 60)
 async def check_bots():
     
     guild = bot.get_guild(896413113044316162)
@@ -39,13 +39,7 @@ async def send_alert(client):
     
     channel = bot.get_channel(905919522349928458)
 
-    await channel.send(f"``` ```")
-
-    for i in range(0, 5):
-        await channel.send(f"<@225629057172111362>\n<@{client.id}> just went offline")
-        await asyncio.sleep(1)
-
-    await channel.send(f"``` ```")
+    await channel.send(f"``` ```\n<@225629057172111362>\n<@{client.id}> just went offline\n``` ```")
 
 
 bot.run(config['listener_token'])    
