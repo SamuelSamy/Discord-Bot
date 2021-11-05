@@ -173,11 +173,11 @@ class Helper_Listener(commands.Cog):
 
             if helper_role in after.roles and helper_role not in before.roles:
                 settings[guild_id][Settings.helpers.value].append(after.id)
+                self.save_json()
             elif helper_role in before.roles and helper_role not in after.roles and after.id in settings[guild_id][Settings.helpers.value]:
                 settings[guild_id][Settings.helpers.value].remove(after.id)
+                self.save_json()
 
-
-            self.save_json()
         except Exception as e:
             print (f"Add / Remove Helper Error:\n{e}\n")
 
