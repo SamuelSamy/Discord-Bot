@@ -123,7 +123,6 @@ class Helper_Listener(commands.Cog):
         
                     if fetched_logs:
                         log = fetched_logs[0]
-                        
                         if  helper_role in log.user.roles and log.extra.channel.id == message.channel.id and log.user.id != message.author.id:    
 
                             await log_channel.send(embed = self.generate_embed_message_delete(log.user, message))
