@@ -39,9 +39,13 @@ async def send_alert(client):
     
     channel = bot.get_channel(905919522349928458)
 
-    for i in range(0, 3):
+    await channel.send(f"``` ```")
+
+    for i in range(0, 5):
         await channel.send(f"<@225629057172111362>\n<@{client.id}> just went offline")
-        await asyncio.sleep(60)
+        await asyncio.sleep(1)
+
+    await channel.send(f"``` ```")
 
 
 bot.run(config['listener_token'])    
