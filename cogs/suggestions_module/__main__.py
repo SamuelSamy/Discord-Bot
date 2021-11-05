@@ -110,8 +110,8 @@ class Suggestions_Module(commands.Cog):
                             
                             if originalUser is not user:
                                 await originalUser.send(f"**<@{user.id}> replied to your message.\nYour message:** {originalMessage.jump_url}\n**Their message:** {content}")
-        except:
-            print ("Suggestions error")
+        except Exception as e:
+            print (f"Suggestions Error:\n{e}\n")
 
 
 def setup(bot):

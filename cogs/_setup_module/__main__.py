@@ -164,10 +164,10 @@ class Setup_Module(commands.Cog):
                             }   
 
                         self.create_settings_entry(guild, sub_steps[index], role_id, settings)
-                    except error:
-                        print(error)
+                    except:
                         await ctx.send("Role not found")
                         index -= 1
+
                 elif index < 9:
                     sub_steps = {
                         3: Settings.mod_logs.value,
@@ -211,8 +211,7 @@ class Setup_Module(commands.Cog):
                             else:
                                 await ctx.send("Error while processing the channels")
                                 index -= 1
-                        except error:
-                            print(error)
+                        except:
                             await ctx.send("Error while processing the channels")
                             index -= 1
 

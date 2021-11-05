@@ -42,8 +42,8 @@ class MemberUpdateModule(commands.Cog):
                 elif old_role.id == ApprovedCC:
                     greater = self.get_user(225629057172111362)
                     await greater.send(f"{user} - removed from approved content creator!")
-        except:
-            print ("CC Listener error")
+        except Exception as e:
+            print (f"CC Listener Error:\n{e}\n")
 
 
     @commands.Cog.listener()
@@ -65,8 +65,8 @@ class MemberUpdateModule(commands.Cog):
 
                     newMessage = "Hello {}\n\nYour report has been reviewed by the Anime Fighters Administration Team!\n\nReport content:\n{}".format(user.mention, message)
                     await user.send(newMessage)
-        except:
-            print ("Raw reaction add error")
+        except Exception as e:
+            print (f"Raw Reaction Add Error:\n{e}\n")
             
 
 def setup(bot):

@@ -64,8 +64,9 @@ async def restart(ctx):
             unload_packages(files, bot)
             load_packages(files, bot)
             await ctx.send("Modules restarted!")
-        except:
+        except Exception as e:
             await ctx.send("Error while restarting")
+            print (f"Error While Restarting:\n{e}\n")
 
 
 @bot.event

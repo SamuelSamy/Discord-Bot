@@ -507,24 +507,24 @@ class Appeal_Module(commands.Cog):
             guild = str(interaction.guild.id)
 
 
-            #try:
+            try:
 
-            if id == "appeal_button":
-                await self.create_appeal(interaction)
-            elif id.startswith("accept_appeal_btn-"):
-                await self.answer_appeal(guild, self.get_appeal_id(id), 1, interaction.author.id)
-                await interaction.message.delete()
-            elif id.startswith("deny_appeal_btn-"):
-                await self.answer_appeal(guild, self.get_appeal_id(id), -1, interaction.author.id)
-                await interaction.message.delete()
-            elif id.startswith("delete_appeal_btn-"):
-                await self.delete_appeal(guild, self.get_appeal_id(id))
-                await interaction.message.delete()
-            elif id.startswith("warn_appeal_btn-"):
-                await self.answer_appeal(guild, self.get_appeal_id(id), -100, interaction.author.id)
-                await interaction.message.delete()
-            #except:
-            #    print ("Unexpected error - Appeal Button Listener")
+                if id == "appeal_button":
+                    await self.create_appeal(interaction)
+                elif id.startswith("accept_appeal_btn-"):
+                    await self.answer_appeal(guild, self.get_appeal_id(id), 1, interaction.author.id)
+                    await interaction.message.delete()
+                elif id.startswith("deny_appeal_btn-"):
+                    await self.answer_appeal(guild, self.get_appeal_id(id), -1, interaction.author.id)
+                    await interaction.message.delete()
+                elif id.startswith("delete_appeal_btn-"):
+                    await self.delete_appeal(guild, self.get_appeal_id(id))
+                    await interaction.message.delete()
+                elif id.startswith("warn_appeal_btn-"):
+                    await self.answer_appeal(guild, self.get_appeal_id(id), -100, interaction.author.id)
+                    await interaction.message.delete()
+            except Exception as e:
+                print (f"Appeal Button Listener Error:\n{e}\n")
                 
 
     @commands.Cog.listener("on_ready")
@@ -675,24 +675,22 @@ class Appeal_Module(commands.Cog):
                                         ]
                                     ]
 
+                                    try:
+
+                                        await appeal_channel.send(
+                                            embed = self.generate_appeal(guild, appeal_message),
+                                            components = comps
+                                        )
+
+                                        appeals[guild]['sent_appeals'].append(appeal_message)
 
 
-                                    # try:
+                                        await author.send(steps[3])
 
-
-                                    await appeal_channel.send(
-                                        embed = self.generate_appeal(guild, appeal_message),
-                                        components = comps
-                                    )
-
-                                    appeals[guild]['sent_appeals'].append(appeal_message)
-
-
-                                    await author.send(steps[3])
-
-                                    # except:
-                                    #     self.cancel_appeal(guild, appeal_message)
-                                    #     await author.send("There was an error while sending the appeal.\nIf you see this message contact <@225629057172111362> (greater#2407).")
+                                    except Exception as e:
+                                        print(f"Sending Appeal Error:\n{e}\n")
+                                        self.cancel_appeal(guild, appeal_message)
+                                        await author.send("There was an error while sending the appeal.\nIf you see this message contact <@225629057172111362> (greater#2407).")
             
 
                                     appeals[guild]['appeals'].remove(appeal_message)
@@ -700,8 +698,8 @@ class Appeal_Module(commands.Cog):
                         else:
                             await author.send("⛔ Appeals are closed at this time. Please try again later!")
                             
-                except error:
-                    print (error)
+                except Exception as e:
+                    print (f"Appeal Errror:\n{e}\n")
             
 
                 
