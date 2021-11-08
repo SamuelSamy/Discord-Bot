@@ -3,3 +3,4 @@ testing_cogs
 test.json
 .todo
 **/__pycache__/**
+.vscode
