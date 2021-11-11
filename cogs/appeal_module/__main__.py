@@ -127,6 +127,8 @@ class Appeal_Module(commands.Cog):
 
 
     def generate_appeal(self, guild, appeal_message, prev_appeal = True):
+
+
         try:
             appeal_id = appeal_message[Appeal.id.value]
 
@@ -184,7 +186,7 @@ class Appeal_Module(commands.Cog):
             else:
                 _name = "Response"
                 deny = "<:redTick:901197559912099841>"
-                accept = "<:greenTick:897104713982541865>"
+                accept = "<:greenTick:901197496276111451>"
                 warn = "⚠️"
 
                 if appeal_message[Appeal.response.value] == 1:
@@ -213,11 +215,12 @@ class Appeal_Module(commands.Cog):
             embed.set_footer(
                 text = f"Appeal ID: {appeal_id}"
             )
-        except:
-            raise ValueError()
-        
-        return embed
 
+            return embed
+
+        except Exception as e:
+            print (f"Generate Appeal Error\n{e}")
+        
 
     def get_appeal_cooldown(self, guild, discord_id, cooldown):
         
@@ -758,7 +761,7 @@ class Appeal_Module(commands.Cog):
 
             for appeal in apps:
                 if appeal[Appeal.id.value] == id:
-                    await ctx.channel.send(embed = self.generate_appeal(appeal, False))
+                    await ctx.channel.send(embed = self.generate_appeal(ctx.channel.guild.id, appeal, False))
                     found = True
 
             if not found:
@@ -798,14 +801,11 @@ class Appeal_Module(commands.Cog):
 
         if search_logs:
             message = await ctx.send("Checking for logs...\nPlease wait!\n*I don't know how to make this faster, sorry*")
-            print ("1")
             logs = self.get_logs(ctx.channel.guild, id)
-            print ("2")
             if logs:
                 await message.edit(logs)
             else:
                 await message.edit("No logs found for this user!")
-            print ("3")
 
 
     @commands.command()
