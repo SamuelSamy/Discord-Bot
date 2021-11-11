@@ -94,17 +94,18 @@ class Appeal_Module(commands.Cog):
 
     def get_logs(self, guild, id):
         
+        guild_id = str(guild.id)
         ids_list = []
         time_list = []
         answer_list = [] 
 
-        for appeal in appeals[guild]['handled_appeals']:
+        for appeal in appeals[guild_id]['handled_appeals']:
             if appeal[Appeal.discord_id.value] == id or appeal[Appeal.roblox_id.value] == id:
                 ids_list.append(appeal[Appeal.id.value])
                 time_list.append(appeal[Appeal.response_time.value])
                 answer_list.append(appeal[Appeal.response.value])
 
-        deny = "<:redTick:897104673150996533>"
+        deny = "<:redTick:901197559912099841>"
         accept = "<:greenTick:901197496276111451>"
         warn = "⚠️"
         
@@ -182,7 +183,7 @@ class Appeal_Module(commands.Cog):
                 logs = self.get_logs(guild, user_id)
             else:
                 _name = "Response"
-                deny = "<:redTick:897104673150996533>"
+                deny = "<:redTick:901197559912099841>"
                 accept = "<:greenTick:897104713982541865>"
                 warn = "⚠️"
 
@@ -729,6 +730,7 @@ class Appeal_Module(commands.Cog):
         appeals[str(ctx.channel.guild.id)]['appeal_channel'] = channel.id
         await ctx.send(f"<#{channel.id}> set as the main appeal channel.")
 
+
     @commands.command()
     @commands.has_permissions(administrator = True)
     async def appeal_log_channel(self, ctx, channel : typing.Optional[discord.TextChannel]):
@@ -738,6 +740,7 @@ class Appeal_Module(commands.Cog):
 
         appeals[str(ctx.channel.guild.id)]['appeal_logs'] = channel.id
         await ctx.send(f"<#{channel.id}> set as the main appeals log channel.")
+
 
     @commands.command()
     @commands.has_permissions(administrator = True)
@@ -751,15 +754,9 @@ class Appeal_Module(commands.Cog):
         if type(id) == int:
             
             apps = appeals[str(ctx.channel.guild.id)]['handled_appeals']
-            warns = appeals[str(ctx.channel.guild.id)]['warns']
             found = False
 
             for appeal in apps:
-                if appeal[Appeal.id.value] == id:
-                    await ctx.channel.send(embed = self.generate_appeal(appeal, False))
-                    found = True
-
-            for appeal in warns:
                 if appeal[Appeal.id.value] == id:
                     await ctx.channel.send(embed = self.generate_appeal(appeal, False))
                     found = True
@@ -801,13 +798,14 @@ class Appeal_Module(commands.Cog):
 
         if search_logs:
             message = await ctx.send("Checking for logs...\nPlease wait!\n*I don't know how to make this faster, sorry*")
-
+            print ("1")
             logs = self.get_logs(ctx.channel.guild, id)
-
+            print ("2")
             if logs:
                 await message.edit(logs)
             else:
                 await message.edit("No logs found for this user!")
+            print ("3")
 
 
     @commands.command()
