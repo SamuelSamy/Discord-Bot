@@ -92,9 +92,9 @@ class Appeal_Module(commands.Cog):
         return id.group(0)
 
 
-    def get_logs(self, guild, id):
+    def get_logs(self, guild_id, id):
         
-        guild_id = str(guild.id)
+        guild_id = str(guild_id)
         ids_list = []
         time_list = []
         answer_list = [] 
@@ -698,12 +698,11 @@ class Appeal_Module(commands.Cog):
             
 
                                     appeals[guild]['appeals'].remove(appeal_message)
-                                    self.save_json()
-                        else:
-                            await author.send("⛔ Appeals are closed at this time. Please try again later!")
-                            
+                                    self.save_json()     
                 except Exception as e:
                     print (f"Appeal Errror:\n{e}\n")
+            else:
+                await author.send("⛔ Appeals are closed at this time. Please try again later!")
             
 
                 
@@ -801,7 +800,7 @@ class Appeal_Module(commands.Cog):
 
         if search_logs:
             message = await ctx.send("Checking for logs...\nPlease wait!\n*I don't know how to make this faster, sorry*")
-            logs = self.get_logs(ctx.channel.guild, id)
+            logs = self.get_logs(ctx.channel.guild.id, id)
             if logs:
                 await message.edit(logs)
             else:
