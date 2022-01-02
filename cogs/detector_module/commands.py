@@ -14,17 +14,22 @@ class Detector_Module_Commands(commands.Cog):
         self.bot = bot
 
 
+        with open('data/blacklist.json') as file:
+            self.blacklisted = json.load(file)
+            file.close()
+
+
     @commands.command()
     @commands.has_permissions(administrator = True)
     async def add_blacklist(self, ctx, *, message : str):
         
         if ctx.author.id == 225629057172111362:
-            if message not in blacklisted['scam_domains']:
-                blacklisted['scam_domains'].append(message)
-                save_json(blacklisted)
-                await ctx.send(f"Blacklisted: {message}")
+            if message not in self.blacklisted['scam_domains']:
+                self.blacklisted['scam_domains'].append(message)
+                save_json(self.blacklisted)
+                await ctx.send(f"self.blacklisted: {message}")
             else:
-                await ctx.send(f"`{message}` is already blacklisted")
+                await ctx.send(f"`{message}` is already self.blacklisted")
             
 
     @commands.command()
@@ -34,7 +39,7 @@ class Detector_Module_Commands(commands.Cog):
         c_links = 0
         message = "```\n"
 
-        for link in blacklisted['scam_domains']:
+        for link in self.blacklisted['scam_domains']:
 
             c_links += 1
             
@@ -53,12 +58,12 @@ class Detector_Module_Commands(commands.Cog):
     async def add_mask(self, ctx, message : str, value : int):
         
         if ctx.author.id == 225629057172111362:
-            if message not in blacklisted['masks']:
-                blacklisted['masks'][message] = value
-                save_json(blacklisted)
+            if message not in self.blacklisted['masks']:
+                self.blacklisted['masks'][message] = value
+                save_json(self.blacklisted)
                 await ctx.send(f"Added mask: `{message}`\nDistance: {value}")
             else:
-                await ctx.send(f"`{message}`` is already blacklisted")
+                await ctx.send(f"`{message}`` is already self.blacklisted")
             
 
     @commands.command()
@@ -67,42 +72,40 @@ class Detector_Module_Commands(commands.Cog):
         
         message = "```py\n"    
 
-        for mask in blacklisted['masks']:
-            distance = blacklisted['masks'][mask]['distance']
+        for mask in self.blacklisted['masks']:
+            distance = self.blacklisted['masks'][mask]['distance']
             message += f"• {mask} ({distance})\n"
 
         await ctx.send(f"{message}```")
     
 
-    @commands.command()
-    @commands.has_permissions(administrator = True)
-    async def check(self, ctx, *, message : str):
+    # @commands.command()
+    # @commands.has_permissions(administrator = True)
+    # async def check(self, ctx, *, message : str):
         
-        if is_blacklisted(message):
-            await ctx.send("This link is blacklisted")
-        else:
-            value = is_mask(message, blacklisted)
-            await ctx.send(f"Levenshtein Distance: {value}")
+    #     if is_self.blacklisted(message):
+    #         await ctx.send("This link is self.blacklisted")
+    #     else:
+    #         value = is_mask(message, self.blacklisted)
+    #         await ctx.send(f"Levenshtein Distance: {value}")
 
 
-    @commands.command()
-    @commands.has_permissions(administrator = True)
-    async def check_by_id(self, ctx, channel_id, message_id):
+    # @commands.command()
+    # @commands.has_permissions(administrator = True)
+    # async def check_by_id(self, ctx, channel_id, message_id):
 
-        channel = self.bot.get_channel(int(channel_id))
-        message = await channel.fetch_message(int(message_id))
-        message = message.content.replace('\x00', '')
+    #     channel = self.bot.get_channel(int(channel_id))
+    #     message = await channel.fetch_message(int(message_id))
+    #     message = message.content.replace('\x00', '')
 
-        if is_blacklisted(message):
-            await ctx.send("This link is blacklisted")
-        else:
-            value = is_mask(message, blacklisted)
-            await ctx.send(f"Levenshtein Distance: {value}")
+    #     if is_self.blacklisted(message):
+    #         await ctx.send("This link is self.blacklisted")
+    #     else:
+    #         value = is_mask(message, self.blacklisted)
+    #         await ctx.send(f"Levenshtein Distance: {value}")
 
 
-with open('data/blacklist.json') as file:
-    blacklisted = json.load(file)
-    file.close()
+
 
 
 def setup(bot):

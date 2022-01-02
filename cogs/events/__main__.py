@@ -1,10 +1,5 @@
-import discord
-import json
-import re
-
-from discord import channel
 from discord.ext import commands
-from discord.utils import get
+
 
 class MemberUpdateModule(commands.Cog):
     def __init__ (self, bot):

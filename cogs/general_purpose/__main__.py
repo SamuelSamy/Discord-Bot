@@ -1,9 +1,7 @@
 import asyncio
 import discord
-import json
 import math
 
-from discord import channel
 from discord.ext import commands
 
 class Mmebers_Module(commands.Cog):

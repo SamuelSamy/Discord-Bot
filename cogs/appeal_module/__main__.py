@@ -1,4 +1,3 @@
-from os import error
 import time
 import discord
 import json
@@ -8,7 +7,6 @@ import re
 
 from enum import Enum
 from discord.ext import commands, tasks
-from discord.ext.commands import context
 from discord_components import *
 
 
@@ -25,15 +23,33 @@ class Appeal(Enum):
     response        = 9
 
 
+class AppealTypes(Enum):
+    not_answered = 0
+    accepted = 1
+    denied = -1
+    flagged = -10
+    warn = -100
+
+
+class Emojis(Enum):
+    accepted = "<:greenTick:901197496276111451>"
+    denied = "<:redTick:901197559912099841>"
+    warned = "⚠️"
+    flagged = "<:OrangeFlag:913862268125605898>"
+
+
 class Appeal_Module(commands.Cog):
     def __init__ (self, bot):
         self.bot = bot
         self.delete_appeals.start()
 
+        with open('data/appeals.json') as appealsFile:
+            self.appeals = json.load(appealsFile)
+            appealsFile.close()
 
     def save_json(self):
         with open("data/appeals.json", "w") as f:
-            json.dump(appeals, f)
+            json.dump(self.appeals, f)
 
 
     def convert_time(self, time):
@@ -61,7 +77,7 @@ class Appeal_Module(commands.Cog):
 
     def get_appeal_for_user(self, guild, id):
 
-        for appeal in appeals[guild]['appeals']:
+        for appeal in self.appeals[guild]['appeals']:
             if appeal[Appeal.discord_id.value] == id:
                 return appeal
 
@@ -99,25 +115,24 @@ class Appeal_Module(commands.Cog):
         time_list = []
         answer_list = [] 
 
-        for appeal in appeals[guild_id]['handled_appeals']:
+        for appeal in self.appeals[guild_id]['handled_appeals']:
             if appeal[Appeal.discord_id.value] == id or appeal[Appeal.roblox_id.value] == id:
                 ids_list.append(appeal[Appeal.id.value])
                 time_list.append(appeal[Appeal.response_time.value])
                 answer_list.append(appeal[Appeal.response.value])
 
-        deny = "<:redTick:901197559912099841>"
-        accept = "<:greenTick:901197496276111451>"
-        warn = "⚠️"
-        
+
         actaul_string = ""
 
         for i in range(0, len(ids_list)):
-            if answer_list[i] == 1:
-                emoji = accept
-            elif answer_list[i] == -1:
-                emoji = deny
-            else:
-                emoji = warn
+            if answer_list[i] == AppealTypes.accepted.value:
+                emoji = Emojis.accepted.value
+            elif answer_list[i] == AppealTypes.denied.value:
+                emoji = Emojis.denied.value
+            elif answer_list[i] == AppealTypes.warn.value:
+                emoji = Emojis.warned.value
+            elif answer_list[i] == AppealTypes.flagged.value:
+                emoji = Emojis.flagged.value
 
             actaul_string += f"{emoji} ID: {ids_list[i]} (<t:{time_list[i]}:R>)\n"
 
@@ -185,17 +200,19 @@ class Appeal_Module(commands.Cog):
                 logs = self.get_logs(guild, user_id)
             else:
                 _name = "Response"
-                deny = "<:redTick:901197559912099841>"
-                accept = "<:greenTick:901197496276111451>"
-                warn = "⚠️"
+                res = None
 
-                if appeal_message[Appeal.response.value] == 1:
-                    logs = f"{accept} **ID: {appeal_message[Appeal.id.value]}** at <t:{appeal_message[Appeal.response_time.value]}> (<t:{appeal_message[Appeal.response_time.value]}:R>)"
-                elif appeal_message[Appeal.response.value] == -1:
-                    logs = f"{deny} **ID: {appeal_message[Appeal.id.value]}** at <t:{appeal_message[Appeal.response_time.value]}> (<t:{appeal_message[Appeal.response_time.value]}:R>)"
-                else:
-                    logs = f"{warn} **ID: {appeal_message[Appeal.id.value]}** at <t:{appeal_message[Appeal.response_time.value]}> (<t:{appeal_message[Appeal.response_time.value]}:R>)"
+                if appeal_message[Appeal.response.value] == AppealTypes.accepted.value:
+                    res = Emojis.accepted.value
+                elif appeal_message[Appeal.response.value] == AppealTypes.denied.value:
+                    res = Emojis.denied.value
+                elif appeal_message[Appeal.response.value] == AppealTypes.warn.value:
+                    res = Emojis.warned.value
+                elif appeal_message[Appeal.response.value] == AppealTypes.flagged.value:
+                    res = Emojis.flagged.value
 
+                
+                logs = f"{res} **ID: {appeal_message[Appeal.id.value]}** at <t:{appeal_message[Appeal.response_time.value]}> (<t:{appeal_message[Appeal.response_time.value]}:R>)"
 
 
             if logs != "":
@@ -224,11 +241,11 @@ class Appeal_Module(commands.Cog):
 
     def get_appeal_cooldown(self, guild, discord_id, cooldown):
         
-        for appeal in reversed(appeals[guild]['handled_appeals']):
+        for appeal in reversed(self.appeals[guild]['handled_appeals']):
             if appeal[Appeal.discord_id.value] == discord_id:
                 _time = round(time.time()) - appeal[Appeal.response_time.value]
                 
-                if appeal[Appeal.response.value] == -100:
+                if appeal[Appeal.response.value] == AppealTypes.warn.value:
                     cooldown *= 2
                 
                 if _time < cooldown:
@@ -239,7 +256,7 @@ class Appeal_Module(commands.Cog):
 
     def has_active_appeal(self, guild, discord_id):
         
-        for appeal in appeals[guild]['sent_appeals']:
+        for appeal in self.appeals[guild]['sent_appeals']:
             if appeal[Appeal.discord_id.value] == discord_id:
                 return True
 
@@ -254,7 +271,7 @@ class Appeal_Module(commands.Cog):
 
     def get_appeal_sent_by_id(self, guild, appeal_id):
         
-        for appeal in appeals[guild]['sent_appeals']:
+        for appeal in self.appeals[guild]['sent_appeals']:
             if appeal[Appeal.id.value] == appeal_id:
                 return appeal
 
@@ -263,7 +280,7 @@ class Appeal_Module(commands.Cog):
 
     def generate_new_appeal(self, guild, id):
         return [
-            appeals[guild]['next_id'], # id
+            self.appeals[guild]['next_id'], # id
 
             round(time.time()), # created_at
             id, # discord_id
@@ -275,7 +292,7 @@ class Appeal_Module(commands.Cog):
             "", # unban_reason
 
             0, # response_times
-            0 # response
+            AppealTypes.not_answered.value # response
         ]
 
 
@@ -293,16 +310,20 @@ class Appeal_Module(commands.Cog):
 
         response = "Accepted"
         _color = 0x0ee320
-        emoji = "<:greenTick:901197496276111451>"
+        emoji = Emojis.accepted.value
 
-        if appeal_message[Appeal.response.value] == -1:
+        if appeal_message[Appeal.response.value] == AppealTypes.denied.value:
             response = "Denied"
             _color = 0xe30e27
-            emoji = "<:redTick:901197559912099841>"
-        elif appeal_message[Appeal.response.value] == -100:
+            emoji = Emojis.denied.value
+        elif appeal_message[Appeal.response.value] == AppealTypes.warn.value:
             response = "Warn"   
             _color = 0xd6c315
-            emoji = "⚠️"
+            emoji = Emojis.warned.value
+        elif appeal_message[Appeal.response.value] == AppealTypes.flagged.value:
+            response = "Denied + Flag"
+            _color = 0xe30e27
+            emoji = Emojis.flagged.value
 
         embed = discord.Embed(
             color = _color
@@ -358,7 +379,7 @@ class Appeal_Module(commands.Cog):
     def cancel_appeal(self, guild, appeal_message):
 
         if appeal_message is not None:
-            appeals[guild]['appeals'].remove(appeal_message)
+            self.appeals[guild]['appeals'].remove(appeal_message)
 
             self.save_json()
             return True
@@ -386,7 +407,6 @@ class Appeal_Module(commands.Cog):
 
     async def answer_appeal(self, guild, id, answer, admin):
         
-
         appeal_message = self.get_appeal_sent_by_id(guild, id)
 
         if appeal_message is None:
@@ -399,27 +419,60 @@ class Appeal_Module(commands.Cog):
         appeal_message[Appeal.response_time.value] = round(time.time())
 
 
-        appeals[guild]['sent_appeals'].remove(appeal_message)
-        appeals[guild]['handled_appeals'].append(appeal_message)
+        self.appeals[guild]['sent_appeals'].remove(appeal_message)
+        self.appeals[guild]['handled_appeals'].append(appeal_message)
 
         self.save_json()
 
-        logs_channel_id = appeals[guild]['appeal_logs']
+        logs_channel_id = self.appeals[guild]['appeal_logs']
         logs_channel = self.bot.get_channel(logs_channel_id)
 
         await logs_channel.send(embed = self.generate_log_embed(appeal_message, admin))
 
         message_for_user = ""
-
-        if answer == 1:
+        
+        if answer == AppealTypes.accepted.value:
             message_for_user = f"Hello <@{user_id}>\n\nYou are unbanned from the game and have recieved a second chance\nIf you use Exploits / Hacks again your next ban will be permanent.\n\n"
-        elif answer == -1:
-            message_for_user = f"Hello <@{user_id}>\n\nYour ban appeal was reviewed by a administrator\nIt was denied and you can re-appeal your ban <t:{round(time.time() + appeals[guild]['cooldown'])}:R>\nYou are not able to appeal your ban anymore if you have been unbanned before\n\n"
-        else:
+        elif answer == AppealTypes.denied.value or answer == AppealTypes.flagged.value:
+            message_for_user = f"Hello <@{user_id}>\n\nYour ban appeal was reviewed by a administrator\nIt was denied and you can re-appeal your ban <t:{round(time.time() + self.appeals[guild]['cooldown'])}:R>\nYou are not able to appeal your ban anymore if you have been unbanned before\n\n"
+        elif answer == AppealTypes.warn.value:
             message_for_user = f"Hello <@{user_id}>\n\nYou have recentlly misused our ban appeal system.\nIf you continue to do so you will be punished."
 
+        try:
+            await user.send(message_for_user)
+        except Exception as e:
+            print (f"Can not send messages to that user.")
 
-        await user.send(message_for_user)
+
+    async def blacklist_user(self, guild, appeal_id):
+        
+        appeal_message = self.get_appeal_sent_by_id(guild, appeal_id)
+
+        if appeal_message is None:
+            return
+
+        self.appeals[guild]['sent_appeals'].remove(appeal_message)
+
+        discord_id = appeal_message[Appeal.discord_id.value]
+        roblox_id  = appeal_message[Appeal.roblox_id.value]
+
+        if discord_id not in self.appeals[guild]['blacklist']['discord']:
+            self.appeals[guild]['blacklist']['discord'].append(discord_id)
+        
+        if roblox_id not in self.appeals[guild]['blacklist']['roblox']:
+            self.appeals[guild]['blacklist']['roblox'].append(roblox_id)
+
+        self.save_json()
+
+
+        message_for_user = f"Hello <@{discord_id}>\n\nYou are no longer able to appeal your in-game ban.\nYou were blacklisted because you were previouslly unbanned **OR** your ban is not appealable\n\n"
+
+        user = self.bot.get_user(discord_id)
+
+        try:
+            await user.send(message_for_user)
+        except Exception as e:
+            print (f"Can not send messages to that user.")
 
 
     async def create_appeal(self, interaction):
@@ -427,21 +480,26 @@ class Appeal_Module(commands.Cog):
         interactionChannel = interaction.message.channel
         guild = self.bot.get_guild(interactionChannel.guild.id)
 
-        if appeals[str(guild.id)]["accepting_appeals"] is True:
+        if self.appeals[str(guild.id)]["accepting_appeals"] is True:
 
             member = guild.get_member(interaction.user.id)
-
-            try:
-                await member.send(f"Hello <@{member.id}>.\nType `Appeal` in order to continue!")
-
+        
+            if member.id  in self.appeals[str(guild.id)]['blacklist']['discord']:
                 await interaction.respond(
-                    content = "You've got a message!"
-                )
-                
-            except:
-                await interaction.respond(
-                    content = "Make sure your direct messages are **ON**! (Right click the server, press Privacy Settings and enable 'Allow direct messages from server members)"
-                )
+                        content = f"Hello <@{member.id}>\n\nYou are no longer able to appeal your in-game ban.\nYou were blacklisted because you were previouslly unbanned **OR** your ban is not appealable\n\n"
+                    )
+            else:
+                try:
+                    await member.send(f"Hello <@{member.id}>.\nType `Appeal` in order to continue!")
+
+                    await interaction.respond(
+                        content = "You've got a message!"
+                    )
+                    
+                except:
+                    await interaction.respond(
+                        content = "Make sure your direct messages are **ON**! (Right click the server, press Privacy Settings and enable 'Allow direct messages from server members)"
+                    )
         else:
             await interaction.respond(
                 content = "⛔ Appeals are closed at this time. Try again later."
@@ -455,7 +513,7 @@ class Appeal_Module(commands.Cog):
         if appeal_message is None:
             return
 
-        appeals[guild]['sent_appeals'].remove(appeal_message)
+        self.appeals[guild]['sent_appeals'].remove(appeal_message)
         self.save_json()
 
 
@@ -501,10 +559,9 @@ class Appeal_Module(commands.Cog):
     async def appeal_button_listener(self):
         
         while True:
-            
 
             interaction = await self.bot.wait_for(
-                'button_click'
+                'interaction'
             )
 
             id = interaction.custom_id
@@ -516,17 +573,21 @@ class Appeal_Module(commands.Cog):
                 if id == "appeal_button":
                     await self.create_appeal(interaction)
                 elif id.startswith("accept_appeal_btn-"):
-                    await self.answer_appeal(guild, self.get_appeal_id(id), 1, interaction.author.id)
-                    await interaction.message.delete()
+                    await self.answer_appeal(guild, self.get_appeal_id(id), AppealTypes.accepted.value, interaction.author.id)
                 elif id.startswith("deny_appeal_btn-"):
-                    await self.answer_appeal(guild, self.get_appeal_id(id), -1, interaction.author.id)
-                    await interaction.message.delete()
+                    await self.answer_appeal(guild, self.get_appeal_id(id), AppealTypes.denied.value, interaction.author.id)
                 elif id.startswith("delete_appeal_btn-"):
                     await self.delete_appeal(guild, self.get_appeal_id(id))
-                    await interaction.message.delete()
                 elif id.startswith("warn_appeal_btn-"):
-                    await self.answer_appeal(guild, self.get_appeal_id(id), -100, interaction.author.id)
+                    await self.answer_appeal(guild, self.get_appeal_id(id), AppealTypes.warn.value, interaction.author.id)
+                elif id.startswith("flag_appeal_btn-"):
+                    await self.answer_appeal(guild, self.get_appeal_id(id), AppealTypes.flagged.value, interaction.author.id)
+                elif id.startswith("blacklist_appeal_btn-"):
+                    await self.blacklist_user(guild, self.get_appeal_id(id))
+
+                if id not in ['appeal_button']:
                     await interaction.message.delete()
+
             except Exception as e:
                 print (f"Appeal Button Listener Error:\n{e}\n")
                 
@@ -549,107 +610,114 @@ class Appeal_Module(commands.Cog):
 
             author =  message.author
             guild = guilds[self.bot.user.id]
+            
 
-            if appeals[guild]["accepting_appeals"] is True:
+            if not author.bot:
+            
+                if self.appeals[guild]["accepting_appeals"] == True:
 
-                try:
+                    id = author.id
 
-                    if not author.bot:
-                        
-                        id = author.id
+                    steps = [
+                        "You can cancel your appeal at any time by typing `Cancel`\n*Note: You have about 1 hour to submit the request before it auto cancels!*\n\n**First Question**\n> What is your roblox username?",
+                        "**Second Question**\n> Why were you banned?",
+                        "**Third Question**\n> Why do you think you should be unbanned?",
+                        "**Your appeal has been sent!**\n"
+                    ]
 
-                        steps = [
-                            "You can cancel your appeal at any time by typing `Cancel`\n*Note: You have about 1 hour to submit the request before it auto cancels!*\n\n**First Question**\n> What is your roblox username?",
-                            "**Second Question**\n> Why were you banned?",
-                            "**Third Question**\n> Why do you think you should be unbanned?",
-                            "**Your appeal has been sent!**\n"
-                        ]
+                    message_lower = message.content.lower().strip()
 
-                        message_lower = message.content.lower().strip()
+                    appeal_message = self.get_appeal_for_user(guild, id)
 
-                        appeal_message = self.get_appeal_for_user(guild, id)
+                    if message_lower == "appeal":
+                        # create appeal message
 
-                        if message_lower == "appeal":
-                            # create appeal message
-
-                            if appeal_message is None:
-                                
-                                if self.has_active_appeal(guild, id) :
-                                    await author.send(f"Hello <@{id}>\nYou are not able to appeal because your last appeal was not reviewed by the administration team.\nWe will message you soon about your appeal status.\n")
-                                else:
-                                    
-                                    cooldown = self.get_appeal_cooldown(guild, id,  int(appeals[guild]['cooldown']))
-
-                                    if cooldown != 0 and id != 225629057172111362:
-                                        await author.send(f"Hello <@{id}>\nYou will be able to apply again <t:{cooldown}:R>, at <t:{cooldown}>")
-                                    else:
-
-                                        appeal_message = self.generate_new_appeal(guild, id)
-                                        
-                                        appeals[guild]['appeals'].append(appeal_message)
-
-                                        await author.send(steps[0])
-
-                                        appeals[guild]['next_id'] += 1
-                                        
-                                        self.save_json()
+                        if appeal_message is None:
+                            
+                            if self.has_active_appeal(guild, id) :
+                                await author.send(f"Hello <@{id}>\nYou are not able to appeal because your last appeal was not reviewed by the administration team.\nWe will message you soon about your appeal status.\n")
+                            elif id in self.appeals[guild]['blacklist']['discord']:
+                                await author.send(f"Hello <@{id}>\n\nYou are no longer able to appeal your in-game ban.\nYou were blacklisted because you were previouslly unbanned **OR** your ban is not appealable\n\n")
                             else:
-                                await author.send("Please answer the question above or type `Cancel` in order to cancel your current request!")
-                            
-                        elif message_lower == "cancel":
-                            
-                            if self.cancel_appeal(guild, appeal_message) == True:
-                                await author.send("Your appeal has been canceled!")
+                                cooldown = self.get_appeal_cooldown(guild, id,  int(self.appeals[guild]['cooldown']))
 
-                        elif appeal_message is not None:
-                            
-                            last_step = appeal_message[Appeal.last_step.value]
-                            
-
-                            if last_step == 0: # roblox profile
-                                
-                                res = await author.send("<a:loading:901197462935580692> Searching profile...\n> Please wait")
-
-                                profile = self.get_profile(message.content)
-                                
-                                if profile is None:
-                                    await res.edit("Player not found. Please try again")
+                                if cooldown != 0 and id != 225629057172111362:
+                                    await author.send(f"Hello <@{id}>\nYou will be able to apply again <t:{cooldown}:R>, at <t:{cooldown}>")
                                 else:
 
-                                    appeal_message[Appeal.roblox_link.value] = profile
-                                    appeal_message[Appeal.roblox_id.value] = int(self.get_roblox_id(profile))
-                                    appeal_message[Appeal.last_step.value] = 1
+                                    appeal_message = self.generate_new_appeal(guild, id)
+                                    
+                                    self.appeals[guild]['appeals'].append(appeal_message)
 
-                                    await res.edit(steps[1])
+                                    await author.send(steps[0])
 
+                                    self.appeals[guild]['next_id'] += 1
+                                    
                                     self.save_json()
+                        else:
+                            await author.send("Please answer the question above or type `Cancel` in order to cancel your current request!")
+                        
+                    elif message_lower == "cancel":
+                        
+                        if self.cancel_appeal(guild, appeal_message) == True:
+                            await author.send("Your appeal has been canceled!")
+                        else:
+                            await author.send("There was an error while trying to cancel the appeal")
 
-                            elif last_step == 1: # ban_reason
-                                
-                                if len(message.content) == 0:
-                                    await author.send("**The message can not be empty!**")
-                                elif len(message.content) > 800:
-                                    await author.send("**The message is too long.\nThe maximum amount of characters is** `800`**!**")
+                    elif appeal_message is not None:
+                        
+                        last_step = appeal_message[Appeal.last_step.value]
+                        
+
+                        if last_step == 0: # roblox profile
+                            
+                            res = await author.send("<a:loading:901197462935580692> Searching profile...\n> Please wait")
+
+                            profile = self.get_profile(message.content)
+                            
+                            if profile is None:
+                                await res.edit("Player not found. Please try again")
+                            else:
+
+                                appeal_message[Appeal.roblox_link.value] = profile
+                                appeal_message[Appeal.roblox_id.value] = int(self.get_roblox_id(profile))
+                                appeal_message[Appeal.last_step.value] = 1
+
+                                await res.edit(steps[1])
+
+                                self.save_json()
+
+                        elif last_step == 1: # ban_reason
+                            
+                            if len(message.content) == 0:
+                                await author.send("**The message can not be empty!**")
+                            elif len(message.content) > 800:
+                                await author.send("**The message is too long.\nThe maximum amount of characters is** `800`**!**")
+                            else:
+                                appeal_message[Appeal.ban_reason.value] = message.content
+                                appeal_message[Appeal.last_step.value] = 2
+
+                                await author.send(steps[2])
+
+                                self.save_json()
+
+                        elif last_step == 2: # unban_reason
+
+                            if len(message.content) == 0:
+                                await author.send("**The message can not be empty!**")
+                            elif len(message.content) > 800:
+                                await author.send("**The message is too long.\nThe maximum amount of characters is** `800`**!**")
+                            else:
+                                appeal_message[Appeal.unban_reason.value] = message.content
+                                appeal_message[Appeal.last_step.value] = 3
+
+                                if appeal_message[Appeal.roblox_id.value] in self.appeals[guild]['blacklist']['roblox'] or \
+                                    appeal_message[Appeal.discord_id.value] in self.appeals[guild]['blacklist']['discord']:
+                                        await author.send(f"Hello <@{appeal_message[Appeal.discord_id.value]}>\n\nYou are no longer able to appeal your in-game ban.\nYou were blacklisted because you were previouslly unbanned **OR** your ban is not appealable\n\n")
                                 else:
-                                    appeal_message[Appeal.ban_reason.value] = message.content
-                                    appeal_message[Appeal.last_step.value] = 2
-
-                                    await author.send(steps[2])
-
-                                    self.save_json()
-                            elif last_step == 2: # unban_reason
-
-                                if len(message.content) == 0:
-                                    await author.send("**The message can not be empty!**")
-                                elif len(message.content) > 800:
-                                    await author.send("**The message is too long.\nThe maximum amount of characters is** `800`**!**")
-                                else:
-                                    appeal_message[Appeal.unban_reason.value] = message.content
-                                    appeal_message[Appeal.last_step.value] = 3
-
                                     # send appeal 
 
-                                    appeal_channel_id = appeals[guild]['appeal_channel']
+                                    appeal_channel_id = self.appeals[guild]['appeal_channel']
                                     appeal_channel = self.bot.get_channel(appeal_channel_id)
 
                                     self.save_json()
@@ -657,14 +725,26 @@ class Appeal_Module(commands.Cog):
                                     comps = [
                                         [
                                             Button (
-                                                style = ButtonStyle.green,
-                                                label = "Accept",
-                                                custom_id = f"accept_appeal_btn-{appeal_message[Appeal.id.value]}"
+                                            style = ButtonStyle.green,
+                                            label = "Accept",
+                                            custom_id = f"accept_appeal_btn-{appeal_message[Appeal.id.value]}"
                                             ),
                                             Button (
                                                 style = ButtonStyle.red,
                                                 label = "Deny",
                                                 custom_id = f"deny_appeal_btn-{appeal_message[Appeal.id.value]}"
+                                            ),
+                                            Button (
+                                                style = ButtonStyle.red,
+                                                label = "Deny + Flag",
+                                                custom_id = f"flag_appeal_btn-{appeal_message[Appeal.id.value]}"
+                                            )
+                                        ],
+                                        [
+                                            Button (
+                                                style = ButtonStyle.gray,
+                                                label = "Blacklist",
+                                                custom_id = f"blacklist_appeal_btn-{appeal_message[Appeal.id.value]}"
                                             ),
                                             Button (
                                                 style = ButtonStyle.blue,
@@ -675,9 +755,9 @@ class Appeal_Module(commands.Cog):
                                                 style = ButtonStyle.gray,
                                                 label = "Delete",
                                                 custom_id = f"delete_appeal_btn-{appeal_message[Appeal.id.value]}"
-                                            ),
+                                            )                           
                                         ]
-                                    ]
+                                    ]       
 
                                     try:
 
@@ -686,7 +766,7 @@ class Appeal_Module(commands.Cog):
                                             components = comps
                                         )
 
-                                        appeals[guild]['sent_appeals'].append(appeal_message)
+                                        self.appeals[guild]['sent_appeals'].append(appeal_message)
 
 
                                         await author.send(steps[3])
@@ -696,16 +776,13 @@ class Appeal_Module(commands.Cog):
                                         self.cancel_appeal(guild, appeal_message)
                                         await author.send("There was an error while sending the appeal.\nIf you see this message contact <@225629057172111362> (greater#2407).")
             
-
-                                    appeals[guild]['appeals'].remove(appeal_message)
-                                    self.save_json()     
-                except Exception as e:
-                    print (f"Appeal Errror:\n{e}\n")
-            else:
-                await author.send("⛔ Appeals are closed at this time. Please try again later!")
-            
-
-                
+                                    if appeal_message in self.appeals[guild]['appeals']:
+                                        self.appeals[guild]['appeals'].remove(appeal_message)
+                                    
+                                    self.save_json()  
+                else:
+                    pass
+               
     @commands.command()
     @commands.has_permissions(administrator = True)
     async def appeal_cooldown(self, ctx, time):
@@ -716,7 +793,7 @@ class Appeal_Module(commands.Cog):
         if time_in_seconds in [-1, -2]:
             await ctx.channel.send("Unable to change the cooldown")
         else:
-            appeals[guild]['cooldown'] = time_in_seconds
+            self.appeals[guild]['cooldown'] = time_in_seconds
             self.save_json()
 
             await ctx.channel.send(f"Cooldown set to {time}")
@@ -729,7 +806,7 @@ class Appeal_Module(commands.Cog):
         if channel is None:
             channel = ctx.channelf
 
-        appeals[str(ctx.channel.guild.id)]['appeal_channel'] = channel.id
+        self.appeals[str(ctx.channel.guild.id)]['appeal_channel'] = channel.id
         await ctx.send(f"<#{channel.id}> set as the main appeal channel.")
 
 
@@ -740,7 +817,7 @@ class Appeal_Module(commands.Cog):
         if channel is None:
             channel = ctx.channel
 
-        appeals[str(ctx.channel.guild.id)]['appeal_logs'] = channel.id
+        self.appeals[str(ctx.channel.guild.id)]['appeal_logs'] = channel.id
         await ctx.send(f"<#{channel.id}> set as the main appeals log channel.")
 
 
@@ -755,7 +832,7 @@ class Appeal_Module(commands.Cog):
 
         if type(id) == int:
             
-            apps = appeals[str(ctx.channel.guild.id)]['handled_appeals']
+            apps = self.appeals[str(ctx.channel.guild.id)]['handled_appeals']
             found = False
 
             for appeal in apps:
@@ -775,10 +852,10 @@ class Appeal_Module(commands.Cog):
         guild = ctx.guild
 
         if status in ["closed", "false", "0"]:
-            appeals[str(guild.id)]["accepting_appeals"] = False
+            self.appeals[str(guild.id)]["accepting_appeals"] = False
             await ctx.send("Appeals are now clsoed")
         elif status in ["open", "true", "1"]:
-            appeals[str(guild.id)]["accepting_appeals"] = False
+            self.appeals[str(guild.id)]["accepting_appeals"] = False
             await ctx.send("Appeal are now open")
         else:
             await ctx.send("Error")
@@ -853,8 +930,8 @@ class Appeal_Module(commands.Cog):
     @tasks.loop(seconds = 2700.0)
     async def delete_appeals(self):
         
-        for guild_id in appeals:
-            guild_data = appeals[guild_id]
+        for guild_id in self.appeals:
+            guild_data = self.appeals[guild_id]
             for appeal in guild_data['appeals']:
 
                 if appeal[Appeal.created_at.value] + guild_data['delete_time'] < round(time.time()):
@@ -866,9 +943,7 @@ class Appeal_Module(commands.Cog):
         
         
 
-with open('data/appeals.json') as appealsFile:
-    appeals = json.load(appealsFile)
-    appealsFile.close()
+
 
 
 def setup(bot):

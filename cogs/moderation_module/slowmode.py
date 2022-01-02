@@ -12,13 +12,16 @@ class Slowmode_Module(commands.Cog):
     def __init__ (self, bot):
         self.bot = bot
 
+        with open('data/settings.json') as settingsFile:
+            self.settings = json.load(settingsFile)
+            settingsFile.close()
 
     @commands.command(aliases = ['getsc'])
     @commands.has_permissions(administrator = True)
     async def getslowmodechannels(self, ctx):
         guild_id = str(ctx.channel.guild.id)
 
-        channels = settings[guild_id][Settings.slowmode_channels.value]
+        channels = self.settings[guild_id][Settings.slowmode_channels.value]
 
         finalMessage = ""
 
@@ -46,7 +49,7 @@ class Slowmode_Module(commands.Cog):
 
         guild_id = str(ctx.channel.guild.id)
 
-        channels = settings[guild_id][Settings.slowmode_channels.value]
+        channels = self.settings[guild_id][Settings.slowmode_channels.value]
 
         channelsAfected = 0
         channelsAfected = int (channelsAfected)
@@ -100,20 +103,20 @@ class Slowmode_Module(commands.Cog):
 
 
         if Type == "add":
-            if channelDict not in settings[guild_id][Settings.slowmode_channels.value]:
-                settings[guild_id][Settings.slowmode_channels.value].append(channelDict)
+            if channelDict not in self.settings[guild_id][Settings.slowmode_channels.value]:
+                self.settings[guild_id][Settings.slowmode_channels.value].append(channelDict)
                 message = "<#{}> added with `default_slowmode = {}`".format(channel.id, default_slowmode)
             else:
                 message = "This channel is already added! Use `slowmodechannel change` to edit this channel's settings!"
 
         
         elif Type == "remove":
-            dictLen = len(settings[guild_id][Settings.slowmode_channels.value])
+            dictLen = len(self.settings[guild_id][Settings.slowmode_channels.value])
             found = False
 
             for i in range(0, dictLen):
-                if settings[guild_id][Settings.slowmode_channels.value][i]['id'] == channel.id:
-                    del settings[guild_id][Settings.slowmode_channels.value][i]
+                if self.settings[guild_id][Settings.slowmode_channels.value][i]['id'] == channel.id:
+                    del self.settings[guild_id][Settings.slowmode_channels.value][i]
                     message = "<#{}> removed!".format(channel.id)
                     found = True
                     break
@@ -122,12 +125,12 @@ class Slowmode_Module(commands.Cog):
                 message = "This channel doesn't have a default slowmode! Use `{}slowmodechannel add` to add the channel!"
 
         elif Type == "change":
-            dictLen = len(settings[guild_id][Settings.slowmode_channels.value])
+            dictLen = len(self.settings[guild_id][Settings.slowmode_channels.value])
             found = False
 
             for i in range(0, dictLen):
-                if settings[guild_id][Settings.slowmode_channels.value][i]['id'] == channel.id:
-                    settings[guild_id][Settings.slowmode_channels.value][i]['default_slowmode'] = default_slowmode 
+                if self.settings[guild_id][Settings.slowmode_channels.value][i]['id'] == channel.id:
+                    self.ettings[guild_id][Settings.slowmode_channels.value][i]['default_slowmode'] = default_slowmode 
                     message = "Default slowmode was changed for <#{}> to {}!".format(channel.id, default_slowmode)
                     found = True
                     break
@@ -137,7 +140,7 @@ class Slowmode_Module(commands.Cog):
             
 
         with open("data/settings.json", "w") as f:
-            json.dump(settings, f)
+            json.dump(self.settings, f)
 
         await ctx.send(message)
     
@@ -159,9 +162,7 @@ class Channel():
         self.default_slowmode = default_slowmode
 
 
-with open('data/settings.json') as settingsFile:
-    settings = json.load(settingsFile)
-    settingsFile.close()
+
 
 def setup(bot):
     bot.add_cog(Slowmode_Module(bot))

@@ -1,4 +1,3 @@
-from os import terminal_size, truncate
 import re
 import json
 import urllib.request
@@ -36,65 +35,65 @@ def is_blacklisted(message, blacklisted):
     return False
 
 
-def is_mask(message_content, blacklisted):
+# def is_mask(message_content, blacklisted):
 
-    urls = re.findall('(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+', message_content)
-    masks = []
+#     urls = re.findall('(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+', message_content)
+#     masks = []
 
-    for mask in blacklisted['masks']:
-        masks.append(str(mask))
+#     for mask in blacklisted['masks']:
+#         masks.append(str(mask))
 
-    for link in urls:
-        link_parts = link.split('/')
+#     for link in urls:
+#         link_parts = link.split('/')
 
-        if len(link_parts) > 2:
-            to_verrify = link_parts[2]
+#         if len(link_parts) > 2:
+#             to_verrify = link_parts[2]
             
-            for mask in masks:
-                distance = levenshtein_distance(to_verrify, mask)
+#             for mask in masks:
+#                 distance = levenshtein_distance(to_verrify, mask)
 
-                if distance < int(blacklisted['masks'][mask]['distance']) and blacklisted['masks'][mask]['exact_match']:
-                    return distance
+#                 if distance < int(blacklisted['masks'][mask]['distance']) and blacklisted['masks'][mask]['exact_match']:
+#                     return distance
 
-    return 0
+#     return 0
 
 
-def levenshtein_distance(s, t):
-    # https://www.datacamp.com/community/tutorials/fuzzy-string-python?utm_source=adwords_ppc&utm_campaignid=14989519638&utm_adgroupid=127836677279&utm_device=c&utm_keyword=&utm_matchtype=b&utm_network=g&utm_adpostion=&utm_creative=332602034364&utm_targetid=dsa-429603003980&utm_loc_interest_ms=&utm_loc_physical_ms=9040263&gclid=CjwKCAjwwsmLBhACEiwANq-tXHKieLemSgdCcH-veD1PhSOzUHK06Hp2e0PcefOtwX7-w_yh8FCHlRoCq4kQAvD_BwE
-    rows = len(s)+1
-    cols = len(t)+1
+# def levenshtein_distance(s, t):
+#     # https://www.datacamp.com/community/tutorials/fuzzy-string-python?utm_source=adwords_ppc&utm_campaignid=14989519638&utm_adgroupid=127836677279&utm_device=c&utm_keyword=&utm_matchtype=b&utm_network=g&utm_adpostion=&utm_creative=332602034364&utm_targetid=dsa-429603003980&utm_loc_interest_ms=&utm_loc_physical_ms=9040263&gclid=CjwKCAjwwsmLBhACEiwANq-tXHKieLemSgdCcH-veD1PhSOzUHK06Hp2e0PcefOtwX7-w_yh8FCHlRoCq4kQAvD_BwE
+#     rows = len(s)+1
+#     cols = len(t)+1
     
-    distance = []
+#     distance = []
     
-    for i in range(0, rows):
+#     for i in range(0, rows):
 
-        row = []
+#         row = []
 
-        for j in range(0, cols):
-            row.append(0)
+#         for j in range(0, cols):
+#             row.append(0)
 
-        distance.append(row) 
+#         distance.append(row) 
 
 
-    for i in range(1, rows):
-        for k in range(1,cols):
-            distance[i][0] = i
-            distance[0][k] = k
+#     for i in range(1, rows):
+#         for k in range(1,cols):
+#             distance[i][0] = i
+#             distance[0][k] = k
 
-    for col in range(1, cols):
-        for row in range(1, rows):
-            if s[row-1] == t[col-1]:
-                cost = 0 
-            else:
-                cost = 1
+#     for col in range(1, cols):
+#         for row in range(1, rows):
+#             if s[row-1] == t[col-1]:
+#                 cost = 0 
+#             else:
+#                 cost = 1
 
-            distance[row][col] = min(
-                distance[row-1][col] + 1,  
-                distance[row][col-1] + 1,          
-                distance[row-1][col-1] + cost
-            )    
+#             distance[row][col] = min(
+#                 distance[row-1][col] + 1,  
+#                 distance[row][col-1] + 1,          
+#                 distance[row-1][col-1] + cost
+#             )    
     
-    return distance[row][col]
+#     return distance[row][col]
 
 
 def is_possible_scam(message_content):
@@ -103,25 +102,32 @@ def is_possible_scam(message_content):
 
     for url in urls:
         
-        error = True
+        if "http" in url:
 
-        try:
-            opener = urllib.request.build_opener()
-            request = urllib.request.Request(url)
-            redirect = opener.open(request).geturl()
-            error = False
-        except:
-            print(f"Error while checking the following link: {url}")
+            try:
+                opener = urllib.request.build_opener()
+                request = urllib.request.Request(url)
+                redirect = opener.open(request, timeout = 30).geturl()
+                error = False
+            except:
+                error = True
 
-        if not error:
-            response = urllib.request.urlopen(redirect)
-            source = str(response.read()).lower()
-            
-            triggers = ['discord', 'nitro', 'free', 'steam']
 
-            if all(x in source for x in triggers):
-                print ("Detected by new function")
-                return True
+            if not error:
+
+                try:
+                    response = urllib.request.urlopen(redirect, timeout = 30)
+                    source = str(response.read()).lower()
+                    open_error = False
+                except:
+                    open_error = True
+
+                if not open_error:
+                    triggers = [['discord', 'nitro', 'free', 'steam'], ['discord', 'nitro', 'gift-form', 'qrcode'], ['discord', 'nitro', 'free', 'new', 'year']]
+
+                    for trigger_set in triggers:
+                        if all(x in source for x in trigger_set):
+                            return True
 
     return False
 

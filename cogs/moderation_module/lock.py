@@ -15,6 +15,12 @@ class Lock_Module(commands.Cog):
         self.bot = bot
         self.lock_role = 903399550889361428
 
+
+        with open('data/settings.json') as file:
+            self.settings = json.load(file)
+            file.close()
+
+
     @commands.command()
     @commands.has_permissions(manage_channels = True)
     async def lock(self, ctx, channel : typing.Optional[discord.TextChannel], *, message = ""):
@@ -27,7 +33,7 @@ class Lock_Module(commands.Cog):
 
             channel = channel or ctx.channel
             guild_id = str(ctx.channel.guild.id)
-            role = get(ctx.guild.roles, id = settings[guild_id][Settings.lock_role.value])
+            role = get(ctx.guild.roles, id = self.settings[guild_id][Settings.lock_role.value])
             
             permission_value = 1
             permissions = channel.overwrites_for(role)
@@ -65,7 +71,7 @@ class Lock_Module(commands.Cog):
             channel = channel or ctx.channel
             guild_id = str(ctx.channel.guild.id)
 
-            role = get(ctx.guild.roles, id = settings[guild_id][Settings.lock_role.value])
+            role = get(ctx.guild.roles, id = self.settings[guild_id][Settings.lock_role.value])
 
             permission_value = 1
             permissions = channel.overwrites_for(role)
@@ -101,9 +107,9 @@ class Lock_Module(commands.Cog):
         if user.guild_permissions.administrator or role in user.roles:
 
             guild_id = str(ctx.channel.guild.id)
-            role = get(ctx.guild.roles, id = settings[guild_id][Settings.lock_role.value])
+            role = get(ctx.guild.roles, id = self.settings[guild_id][Settings.lock_role.value])
 
-            channels = settings[guild_id][Settings.lockdown_channels.value]
+            channels = self.settings[guild_id][Settings.lockdown_channels.value]
 
             Type = Type.lower().strip()
             send_message = None
@@ -165,19 +171,19 @@ class Lock_Module(commands.Cog):
         message = ""
     
         if Type == "add":
-            if channel.id not in settings[guild_id][Settings.lockdown_channels.value]:
-                settings[guild_id][Settings.lockdown_channels.value].append(channel.id)
+            if channel.id not in self.settings[guild_id][Settings.lockdown_channels.value]:
+                self.settings[guild_id][Settings.lockdown_channels.value].append(channel.id)
                 message = "<#{}> added to the lockdown list!".format(channel.id)
             else:
                 message = "This channel is already added! Use `{}lockdownchannel remove` to remove this channel".format(commands.Cog.command_prefix)
         
         elif Type == "remove":
-            dictLen = len(settings[guild_id][Settings.lockdown_channels.value])
+            dictLen = len(self.settings[guild_id][Settings.lockdown_channels.value])
             found = False
 
             for i in range(0, dictLen):
-                if settings[guild_id][Settings.lockdown_channels.value][i] == channel.id:
-                    del settings[guild_id][Settings.lockdown_channels.value][i]
+                if self.settings[guild_id][Settings.lockdown_channels.value][i] == channel.id:
+                    del self.settings[guild_id][Settings.lockdown_channels.value][i]
                     message = "<#{}> removed!".format(channel.id)
                     found = True
                     break
@@ -186,7 +192,7 @@ class Lock_Module(commands.Cog):
                 message = "This channel is not on the lockdown list! Use `{}lockdownchannel add` to add the channel!"
 
         with open("data/settings.json", "w") as f:
-            json.dump(settings, f)
+            json.dump(self.settings, f)
 
         await ctx.send(message)
     
@@ -196,7 +202,7 @@ class Lock_Module(commands.Cog):
     async def getlockdownchannels(self, ctx):
         guild_id = str(ctx.channel.guild.id)
 
-        channels = settings[guild_id][Settings.lockdown_channels.value]
+        channels = self.settings[guild_id][Settings.lockdown_channels.value]
 
         finalMessage = "**Channels:**\n"
 
@@ -233,9 +239,7 @@ async def check_permission(channel : discord.TextChannel, role, permission_value
     return 0
 
 
-with open('data/settings.json') as file:
-    settings = json.load(file)
-    file.close()
+
 
 
 def setup(bot):

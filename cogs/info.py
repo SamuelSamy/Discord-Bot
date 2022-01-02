@@ -12,16 +12,20 @@ class Info_Handler(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+
+        with open('data/prefixes.json') as file:
+            self.prefixes = json.load(file)
+            file.close()
+
     def save_json(self):
         with open("data/prefixes.json", "w") as f:
-            json.dump(prefixes, f)
+            json.dump(self.prefixes, f)
         
 
     @commands.Cog.listener("on_ready")
     async def _on_ready(self):
 
         DiscordComponents(self.bot)
-        
         print("Bot is ready!")
         
     
@@ -29,24 +33,17 @@ class Info_Handler(commands.Cog):
     @commands.has_permissions(administrator = True)
     async def prefix(self, ctx, newPrefix = None):
         if newPrefix:
-            self.bot.command_prefix = prefixes[str(ctx.channel.guild.id)] = newPrefix
+            self.bot.command_prefix = self.prefixes[str(ctx.channel.guild.id)] = newPrefix
 
             self.save_json()
 
             await ctx.send("The new prefix is `{}`".format(newPrefix))
         else:
-            await ctx.send("The prefix is `{}`".format(prefixes[str(ctx.channel.guild.id)]))
-
-    
-    @commands.command(aliases = ['v'])
-    @commands.has_permissions(administrator = True)
-    async def version(self, ctx):
-        await ctx.send(f"The Bot runs on version **{4.0}**")
+            await ctx.send("The prefix is `{}`".format(self.prefixes[str(ctx.channel.guild.id)]))
 
 
-with open('data/prefixes.json') as file:
-    prefixes = json.load(file)
-    file.close()
+
+
 
 
 def setup(bot):
