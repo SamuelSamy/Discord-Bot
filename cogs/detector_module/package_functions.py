@@ -107,7 +107,7 @@ def is_possible_scam(message_content):
             try:
                 opener = urllib.request.build_opener()
                 request = urllib.request.Request(url)
-                redirect = opener.open(request, timeout = 30).geturl()
+                redirect = opener.open(request, timeout = 10).geturl()
                 error = False
             except:
                 error = True
@@ -116,7 +116,7 @@ def is_possible_scam(message_content):
             if not error:
 
                 try:
-                    response = urllib.request.urlopen(redirect, timeout = 30)
+                    response = urllib.request.urlopen(redirect, timeout = 10)
                     source = str(response.read()).lower()
                     open_error = False
                 except:

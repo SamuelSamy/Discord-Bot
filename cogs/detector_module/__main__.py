@@ -25,6 +25,10 @@ class Detector_Module(commands.Cog):
     @commands.Cog.listener("on_message")
     async def scam_listener(self, message):
 
+        if isinstance(message.channel, discord.DMChannel):
+            return
+
+            
         try:
 
             member = message.author

@@ -4,3 +4,4 @@ test.json
 .todo
 **/__pycache__/**
 .vscode
+.idea

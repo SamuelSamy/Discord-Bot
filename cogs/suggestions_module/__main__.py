@@ -82,26 +82,35 @@ class Suggestions_Module(commands.Cog):
 
         if isinstance(message.channel, discord.DMChannel):
             return
+    
+        guild_id = str(message.guild.id)
+        settings = self.open_json()
 
-        try:
+        if settings[guild_id]:
 
-            guild_id = str(message.guild.id)
-            settings = self.open_json()
+            suggestions_channels = settings[guild_id][Settings.suggestions_channels.value]
 
-            if settings[guild_id]:
+            hasLinkRepost = re.search("/channels/", message.content, re.IGNORECASE)
 
-                suggestions_channels = settings[guild_id][Settings.suggestions_channels.value]
+            for suggestions_channel in suggestions_channels:
 
-                hasLinkRepost = re.search("/channels/", message.content, re.IGNORECASE)
+                if message.channel.id == suggestions_channel and (message.reference is not None or hasLinkRepost):
 
-                for suggestions_channel in suggestions_channels:
-                    if message.channel.id == suggestions_channel and (message.reference is not None or hasLinkRepost):
-                        user = message.author
-                        content = message.content
+                    user = message.author
+                    content = message.content
 
+                    try:
                         await message.delete()
+                        deleted = True
+                    except:
+                        deleted = False
 
-                        await user.send(f"**Your message was deleted in <#{suggestions_channel}> because it was detected as a possible repost**\n **Message content:** {content}")
+                    if deleted:
+
+                        try:
+                            await user.send(f"**Your message was deleted in <#{suggestions_channel}> because it was detected as a possible repost**\n **Message content:** {content}")
+                        except:
+                            pass
                         
                         if message.reference is not None:
 
@@ -109,9 +118,12 @@ class Suggestions_Module(commands.Cog):
                             originalUser = originalMessage.author
                             
                             if originalUser is not user:
-                                await originalUser.send(f"**<@{user.id}> replied to your message.\nYour message:** {originalMessage.jump_url}\n**Their message:** {content}")
-        except Exception as e:
-            print (f"Suggestions Error:\n{e}\n")
+                                
+                                try:
+                                    await originalUser.send(f"**<@{user.id}> replied to your message.\nYour message:** {originalMessage.jump_url}\n**Their message:** {content}")
+                                except:
+                                    pass
+
 
 
 def setup(bot):
