@@ -111,79 +111,73 @@ class Helper_Listener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
-
-        try:
-            if not isinstance(message.channel, discord.DMChannel):   
-
-                guild = message.guild
-                guild_id = str(guild.id)
-
-                if self.settings[guild_id]:
-                    
-                    log_channel = self.bot.get_channel(self.settings[guild_id][Settings.helper_logs.value])
-                    helper_role = guild.get_role(self.settings[guild_id][Settings.helper_role.value])
-
-                    fetched_logs = await guild.audit_logs(limit = 1).flatten()
         
-                    if fetched_logs:
-                        log = fetched_logs[0]
-                        if  helper_role in log.user.roles and log.extra.channel.id == message.channel.id and log.user.id != message.author.id:    
+    
+        if not isinstance(message.channel, discord.DMChannel):   
 
-                            await log_channel.send(embed = self.generate_embed_message_delete(log.user, message))
-                            
-                            if len(message.attachments) > 1:
-                                for i in range(1, len(message.attachments)):
-                                    await log_channel.send(embed = self.generate_empty_embed_for_attachment(log.user, message, message.attachments[i]))
+            guild = message.guild
+            guild_id = str(guild.id)
 
-        except Exception as e:
-            print(f"Message Delete Error:\n{e}\n")
+            if self.settings[guild_id]:
+                
+                log_channel = self.bot.get_channel(self.settings[guild_id][Settings.helper_logs.value])
+                helper_role = guild.get_role(self.settings[guild_id][Settings.helper_role.value])
+
+                fetched_logs = await guild.audit_logs(limit = 1).flatten()
+    
+                if fetched_logs:
+                    log = fetched_logs[0]
+                    if  helper_role in log.user.roles and log.extra.channel.id == message.channel.id and log.user.id != message.author.id:    
+
+                        await log_channel.send(embed = self.generate_embed_message_delete(log.user, message))
+                        
+                        if len(message.attachments) > 1:
+                            for i in range(1, len(message.attachments)):
+                                await log_channel.send(embed = self.generate_empty_embed_for_attachment(log.user, message, message.attachments[i]))
+
+
 
             
     @commands.Cog.listener("on_member_update")
     async def helper_listener(self, before, after):
         
-        try:
+        if before.nick != after.nick:
 
-            if before.nick != after.nick:
+            guild = after.guild
+            guild_id = str(guild.id)
 
-                guild = after.guild
-                guild_id = str(guild.id)
+            log_channel = self.bot.get_channel(self.settings[guild_id][Settings.helper_logs.value])
+            helper_role = guild.get_role(self.settings[guild_id][Settings.helper_role.value])
 
-                log_channel = self.bot.get_channel(self.settings[guild_id][Settings.helper_logs.value])
-                helper_role = guild.get_role(self.settings[guild_id][Settings.helper_role.value])
+            fetched_logs = await guild.audit_logs(limit = 1, action = discord.AuditLogAction.member_update).flatten()
 
-                fetched_logs = await guild.audit_logs(limit = 1, action = discord.AuditLogAction.member_update).flatten()
+            if fetched_logs:
+                log = fetched_logs[0]
 
-                if fetched_logs:
-                    log = fetched_logs[0]
+                if  helper_role in log.user.roles:    
+                    if log.user.id != after.id:
+                            await log_channel.send(embed = self.generate_embed_nick_changed(log.user, before, after))
 
-                    if  helper_role in log.user.roles:    
-                        if log.user.id != after.id:
-                                await log_channel.send(embed = self.generate_embed_nick_changed(log.user, before, after))
-        except Exception as e:
-             print (f"Member Update Error:\n{e}\n")
     
 
 
     @commands.Cog.listener("on_member_update")
     async def member_update(self, before, after):
-        
-        try:
-            guild = after.guild
-            guild_id = str(guild.id)
+     
+        guild = after.guild
+        guild_id = str(guild.id)
 
-            helper_role_id = self.settings[guild_id][Settings.helper_role.value]
-            helper_role = guild.get_role(helper_role_id)
+        helper_role_id = self.settings[guild_id][Settings.helper_role.value]
+        helper_role = guild.get_role(helper_role_id)
 
-            if helper_role in after.roles and helper_role not in before.roles:
-                self.settings[guild_id][Settings.helpers.value].append(after.id)
-                self.save_json()
-            elif helper_role in before.roles and helper_role not in after.roles and after.id in self.settings[guild_id][Settings.helpers.value]:
-                self.settings[guild_id][Settings.helpers.value].remove(after.id)
-                self.save_json()
+        if helper_role in after.roles and helper_role not in before.roles:
+            self.settings[guild_id][Settings.helpers.value].append(after.id)
+            self.save_json()
+        elif helper_role in before.roles and helper_role not in after.roles and after.id in self.settings[guild_id][Settings.helpers.value]:
+            self.settings[guild_id][Settings.helpers.value].remove(after.id)
+            self.save_json()
 
-        except Exception as e:
-            print (f"Add / Remove Helper Error:\n{e}\n")
+    
 
 
     @commands.command()
