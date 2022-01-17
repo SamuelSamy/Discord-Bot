@@ -144,8 +144,10 @@ async def send_to_mod_logs(self, message, settings):
     member = message.author
     guild = str(message.guild.id)
     
-    await member.send(f"Hello {member.mention}\nYou were kicked from {message.guild} because your account was recentlly hacked.\n*Note: If this was a mistake you can join the server using the following link:* {server_invites[guild]}")
-
+    try:
+        await member.send(f"Hello {member.mention}\nYou were kicked from {message.guild} because your account was recentlly hacked.\n*Note: If this was a mistake you can join the server using the following link:* {server_invites[guild]}")
+    except:
+        pass
 
     mod_logs = self.bot.get_channel(settings[guild][Settings.mod_logs.value])
 

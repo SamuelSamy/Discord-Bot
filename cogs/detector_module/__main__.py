@@ -13,6 +13,8 @@ class Detector_Module(commands.Cog):
     def __init__ (self, bot):
         self.bot = bot
 
+        print ("Initializing detector module")
+
         with open('data/blacklist.json') as file:
             self.blacklisted = json.load(file)
             file.close()
@@ -21,6 +23,9 @@ class Detector_Module(commands.Cog):
         with open('data/settings.json') as file:
             self.settings = json.load(file)
             file.close()
+
+        print ("Detector module initialized")
+        
 
     @commands.Cog.listener("on_message")
     async def scam_listener(self, message):

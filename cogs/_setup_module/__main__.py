@@ -13,7 +13,8 @@ from cogs.__classes.settings import *
 class Setup_Module(commands.Cog):
     def __init__ (self, bot):
         self.bot = bot
-
+        print("Setup module initalized")
+    
     
     def save_json(self, settings, appeals):
         with open("data/settings.json", "w") as f:

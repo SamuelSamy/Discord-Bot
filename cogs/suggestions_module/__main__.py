@@ -86,7 +86,7 @@ class Suggestions_Module(commands.Cog):
         guild_id = str(message.guild.id)
         settings = self.open_json()
 
-        if settings[guild_id]:
+        if str(guild_id) in settings:
 
             suggestions_channels = settings[guild_id][Settings.suggestions_channels.value]
 
