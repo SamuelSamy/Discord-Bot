@@ -54,7 +54,7 @@ class Appeals(commands.Cog):
     @commands.has_permissions(administrator = True)
     async def appeal_cooldown(self, ctx, time):
 
-        time_in_seconds = self.convert_time(time)
+        time_in_seconds = convert_time(time)
         guild = str(ctx.channel.guild.id)
 
         appeals = get_appeal_json()
@@ -105,10 +105,10 @@ class Appeals(commands.Cog):
 
         if type(id) == int:
             
-            appeal = get_appeal_by_id(id)
+            appeal = get_appeal_by_id(ctx.guild.id, id)
 
             if appeal is not None:
-                await ctx.channel.send(embed = generate_appeal(ctx.channel.guild.id, appeal, False))
+                await ctx.channel.send(embed = generate_appeal(self.bot, ctx.channel.guild.id, appeal, False))
             else:
                 await ctx.channel.send("Unable to find appeal with specified id")
 

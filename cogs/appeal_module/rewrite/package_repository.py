@@ -21,7 +21,7 @@ class DatabaseRepository:
         return data
 
 
-    def general_statement(self, sql_statement, args = None):
+    def general_statement(self, sql_statement, args = ()):
         """
         Used for `insert` and `update`
 
@@ -36,7 +36,7 @@ class DatabaseRepository:
         connection.close()  
 
 
-    def delete(self, sql_statement, args = None):
+    def delete(self, sql_statement, args = ()):
         connection = sqlite3.connect(self.path)
         cursor = connection.cursor()
         cursor.execute(sql_statement, args)

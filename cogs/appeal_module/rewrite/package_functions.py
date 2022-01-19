@@ -243,7 +243,7 @@ def get_active_appeal(guild, discord_id):
 def get_appeal_by_id(guild, appeal_id):
     guild = str(guild)
     database = DatabaseRepository()
-    data = database.select("select * from appeals where guild = ? and id = ?", (guild, appeal_id))
+    data = database.select("select * from appeals where guild = ? and ID = ?", (guild, appeal_id))
     return None if len(data) == 0 else data[0]
 
 
@@ -465,13 +465,13 @@ async def create_appeal(bot, interaction):
                     
                     guild_id = str(guild.id)
                     database = DatabaseRepository()
-                    database.general_statement(f"insert into appeals values (?, ?, ?, ?, ?, ?, ?, ?, ?)", (None, guild_id, member.id, None, None, None, 0, 0, AppealStages.opened))
+                    database.general_statement(f"insert into appeals values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (None, guild_id, member.id, None, None, None, 0, 0, AppealStages.opened, round(time.time())))
 
                     try:
-                        DM_message = "You can cancel your appeal at any time by typing `Cancel`\n*Note: You have about 1 hour to submit the request before it auto cancels!*\n\n**First Question**\n> What is your roblox username?"
+                        DM_message = "You can cancel your appeal at any time by typing `Cancel`\n*Note: Your appeal will be canceled if you do not finish it in 30 minutes!*\n\n**First Question**\n> What is your roblox username?"
                         await member.send(content = DM_message)
                         
-                        message = "Check your DMs!"
+                        message = "You've got a message!"
 
                     except:
                         message = "Make sure your direct messages are **ON**! (Right click the server, press Privacy Settings and enable `Allow direct messages from server members`)"

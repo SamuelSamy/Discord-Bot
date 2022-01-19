@@ -1,4 +1,4 @@
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from cogs.appeal_module.rewrite.package_enums import AppealTypes
 from cogs.appeal_module.rewrite.package_functions import *
@@ -8,6 +8,15 @@ class AppealListeners(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
+
+        self.delete_appeals.start()
+
+
+    @tasks.loop(seconds = 120.0)  # 5 minutes
+    async def delete_appeals(self):
+        MAX_TIME = 30 * 60 # 30 minutes
+        database = DatabaseRepository()
+        database.delete(f"delete from appeals where created_at + {MAX_TIME} < {round(time.time())} and stage < 4", ())
 
     
     @commands.Cog.listener("on_ready")
